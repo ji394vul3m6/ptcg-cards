@@ -143,6 +143,17 @@
     #card-image-list .card img.first {
       position: relative;
     }
+    #card-list span{
+      display: inline-block;
+      margin-right: 8px;
+    }
+    #card-list .single-card input {
+      visibility: hidden;
+      margin-right: 4px;
+    }
+    #card-list .single-card:hover input {
+      visibility: visible;
+    }
   </style>
 </head>
 
@@ -170,36 +181,117 @@
         if (cardIdx === '') {
           return false
         }
-        currentCards.push([series, cardIdx, num])
+
+        let find = false
+        currentCards.forEach(card => {
+          if (card[0] === series && card[1] === cardIdx) {
+            card[2] += num
+            find = true
+          }
+          if (card[2] > 4) {
+            card[2] = 4
+          }
+        })
+
+        if (!find) {
+          currentCards.push([series, cardIdx, num])
+        }
         return true
       }
       function getCards() {
         return JSON.parse(JSON.stringify(currentCards))
       }
+      function addCardCount(idx) {
+        if (currentCards[idx][2] < 4) {
+          currentCards[idx][2]++
+        }
+      }
+      function minusCardCount(idx) {
+        if (currentCards[idx][2] > 0) {
+          currentCards[idx][2]--
+        }
+        if (currentCards[idx][2] === 0) {
+          currentCards.splice(idx, 1)
+        }
+      }
+      function shift(i, j) {
+        const tmp = currentCards[i]
+        currentCards[i] = currentCards[j]
+        currentCards[j] = tmp
+      }
       return {
         resetCards,
         addCard,
-        getCards
+        getCards,
+        addCardCount,
+        minusCardCount,
+        shift
       }
     }()
 
-    function showCards() {
+    function showCardText() {
       const cards = cardCtl.getCards()
       let total = 0
       const container = document.querySelector('#card-list')
+      container.innerHTML = ''
+
       const totalNumContainer = document.querySelector('#total-card-num')
 
+      cards.forEach(function (info, cardPos) {
+        const [series, cardIdx, num] = info
+        const span = document.createElement('span')
+        const singleCard = document.createElement('div')
+        singleCard.className = 'single-card'
+
+        total += num
+        span.textContent = series + ' - ' + paddingToThree(cardIdx + 1) + ' - ' + cardName[series][cardIdx] + ' x ' + num.toString()
+
+        singleCard.appendChild(span)
+
+        function addBtn(text, callback) {
+          const btn = document.createElement('input')
+          btn.value = text
+          btn.setAttribute('type', 'button')
+          if (callback !== undefined) {
+            btn.addEventListener('click', function(e) {
+              callback(e)
+              showCards()
+            })
+          }
+          return btn
+        }
+        if (cardPos > 0) {
+          singleCard.appendChild(addBtn('↑', function() {
+            cardCtl.shift(cardPos, cardPos - 1)
+          }))
+        }
+        if (cardPos < cards.length - 1) {
+          singleCard.appendChild(addBtn('↓', function() {
+            cardCtl.shift(cardPos, cardPos + 1)
+          }))
+        }
+        if (num < 4) {
+          singleCard.appendChild(addBtn('+', function() {
+            cardCtl.addCardCount(cardPos)
+          }))
+        }
+        if (num > 0) {
+          singleCard.appendChild(addBtn('-', function() {
+            cardCtl.minusCardCount(cardPos)
+            showCards()
+          }))
+        }
+        container.appendChild(singleCard)
+      })
+      totalNumContainer.innerHTML = total.toString()
+    }
+    function showCardImage() {
+      const cards = cardCtl.getCards()
       const imageContainer = document.querySelector('#card-image-list')
-      container.innerHTML = ''
       imageContainer.innerHTML = ''
 
-      cards.forEach(function (info) {
+      cards.forEach(function (info, cardPos) {
         const [series, cardIdx, num] = info
-        const div = document.createElement('div')
-        total += num
-        div.textContent = series + ' - ' + paddingToThree(cardIdx + 1) + ' - ' + cardName[series][cardIdx] + ' x ' + num.toString()
-        container.appendChild(div)
-
         const imageDiv = document.createElement('div')
         imageDiv.className = "card num-" + num.toString()
 
@@ -220,9 +312,16 @@
           }
           imageDiv.appendChild(img)
         }
+
+        const textDiv = document.createElement('div')
+        textDiv.textContent = cardName[series][cardIdx] + ' x ' + num.toString()
+        
         imageContainer.appendChild(imageDiv)
       })
-      totalNumContainer.innerHTML = total.toString()
+    }
+    function showCards() {
+      showCardText()
+      showCardImage()
     }
 
     const seriesSelector = document.querySelector('#select-series')
@@ -254,8 +353,12 @@
       const series = seriesSelector.value
       const cardIdx = parseInt(cardSelector.value, 10)
       const num = parseInt(numSelector.value, 10)
+
+      if (series === '' || isNaN(cardIdx) || isNaN(num)) {
+        return
+      }
+
       if (cardCtl.addCard(series, cardIdx, num)) {
-        cardSelector.value = ''
         numSelector.value = 1
         showCards()
       }
@@ -263,8 +366,7 @@
     downloadBtn.addEventListener('click', function () {
       const cardImageList = document.querySelector('#card-image-list')
       html2canvas(cardImageList, {
-        width: 1920,
-        height: 1080,
+        scale: 2
       }).then(canvas => {
         var d = canvas.toDataURL("image/png");
         var w = window.open('about:blank', 'image from canvas');

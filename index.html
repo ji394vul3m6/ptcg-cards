@@ -87,7 +87,7 @@
     }
 
     .container .left {
-      flex: 1 0 50%;
+      flex: 1 0 30%;
       min-width: 480px;
       max-width: 800px;
       padding: 20px;
@@ -97,9 +97,9 @@
     }
 
     .container .right {
-      flex: 1 0 50%;
+      flex: 1 0 70%;
       min-width: 480px;
-      max-width: 800px;
+      max-width: 1120px;
       padding: 20px;
     }
 
@@ -231,7 +231,7 @@
     const addCardBtn = document.querySelector('#btn-add-card')
     const downloadBtn = document.querySelector('#btn-download-img')
 
-    seriesSelector.addEventListener('change', function () {
+    function loadCards() {
       const series = seriesSelector.value
       const cards = cardName[series]
 
@@ -247,7 +247,9 @@
         opt.textContent = paddingToThree(idx + 1) + ' - ' + name
         cardSelector.appendChild(opt)
       })
-    })
+    }
+
+    seriesSelector.addEventListener('change', loadCards)
     addCardBtn.addEventListener('click', function () {
       const series = seriesSelector.value
       const cardIdx = parseInt(cardSelector.value, 10)
@@ -260,12 +262,16 @@
     })
     downloadBtn.addEventListener('click', function () {
       const cardImageList = document.querySelector('#card-image-list')
-      html2canvas(cardImageList).then(canvas => {
+      html2canvas(cardImageList, {
+        width: 1920,
+        height: 1080,
+      }).then(canvas => {
         var d = canvas.toDataURL("image/png");
         var w = window.open('about:blank', 'image from canvas');
         w.document.write("<img src='" + d + "' alt='from canvas'/>");
       });
     })
+    loadCards()
   }
 
 </script>
@@ -278,7 +284,6 @@
         <form>
           <div class="title">新增卡片</div>
           <select name="series" id="select-series">
-            <option value=""></option>
             <option value="AC1a">AC1a</option>
             <option value="AC1b">AC1b</option>
             <option value="AC1D">AC1D</option>

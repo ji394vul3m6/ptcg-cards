@@ -1,1 +1,298 @@
-Test Page
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>PTCG 卡表生成</title>
+  <script src="./name.js"></script>
+  <script src="./html2canvas.min.js"></script>
+  <style>
+    #select-series {
+      width: 100px;
+    }
+
+    #select-cards {
+      width: 200px;
+    }
+
+    select {
+      padding: 4px;
+    }
+
+    .block {
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15);
+      margin-top: 20px;
+      padding: 20px;
+    }
+
+    .block:first-child {
+      margin-top: 0;
+    }
+
+    .block.fix {
+      flex: 0 0 auto;
+    }
+
+    .block.stretch {
+      flex: 1;
+    }
+
+    .block .title {
+      margin-bottom: 8px;
+      font-size: 1.2em;
+    }
+
+    body {
+      height: 100vh;
+      width: 100vw;
+      margin: 0;
+      font-family: monospace;
+    }
+
+    div {
+      box-sizing: border-box;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+
+      justify-content: center;
+      align-items: stretch;
+      height: 100%;
+    }
+
+    .container .left {
+      flex: 1 0 50%;
+      min-width: 480px;
+      max-width: 800px;
+      padding: 20px;
+
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container .right {
+      flex: 1 0 50%;
+      min-width: 480px;
+      max-width: 800px;
+      padding: 20px;
+    }
+
+    #card-image-list {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+    }
+
+    #card-image-list .card {
+      flex: 0 0 10%;
+      margin-right: 20px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    #card-image-list .card.num-2 {
+      /* flex-basis: calc(12.5%) */
+      /* margin-left: 2.5%; */
+      margin-left: 20px;
+    }
+
+    #card-image-list .card.num-3 {
+      /* flex-basis: calc(15%) */
+      /* margin-left: 5%; */
+      margin-left: 40px;
+    }
+
+    #card-image-list .card.num-4 {
+      /* flex-basis: calc(17.5%) */
+      /* margin-left: 7.5%; */
+      margin-left: 60px;
+    }
+
+    #card-image-list .card img {
+      width: 100%;
+      background: gray;
+      position: absolute;
+    }
+
+    #card-image-list .card img.first {
+      position: relative;
+    }
+  </style>
+</head>
+
+<script>
+  function load() {
+    function paddingToThree(num) {
+      if (num >= 100) {
+        return num
+      }
+      if (num >= 10) {
+        return '0' + num.toString()
+      }
+      return '00' + num.toString()
+    }
+
+    const cardCtl = function () {
+      let currentCards = []
+      function resetCards() {
+        currentCards = []
+      }
+      function addCard(series, cardIdx, num) {
+        if (series === '') {
+          return false
+        }
+        if (cardIdx === '') {
+          return false
+        }
+        currentCards.push([series, cardIdx, num])
+        return true
+      }
+      function getCards() {
+        return JSON.parse(JSON.stringify(currentCards))
+      }
+      return {
+        resetCards,
+        addCard,
+        getCards
+      }
+    }()
+
+    function showCards() {
+      const cards = cardCtl.getCards()
+      let total = 0
+      const container = document.querySelector('#card-list')
+      const totalNumContainer = document.querySelector('#total-card-num')
+
+      const imageContainer = document.querySelector('#card-image-list')
+      container.innerHTML = ''
+      imageContainer.innerHTML = ''
+
+      cards.forEach(function (info) {
+        const [series, cardIdx, num] = info
+        const div = document.createElement('div')
+        total += num
+        div.textContent = series + ' - ' + paddingToThree(cardIdx + 1) + ' - ' + cardName[series][cardIdx] + ' x ' + num.toString()
+        container.appendChild(div)
+
+        const imageDiv = document.createElement('div')
+        imageDiv.className = "card num-" + num.toString()
+
+        function createImg(src) {
+          const img = document.createElement('img')
+          img.src = src
+          return img
+        }
+
+        for (let i = 0; i < num; i++) {
+          const img = createImg('./test.webp')
+          img.style.left = (0 - 20 * i).toString() + 'px'
+          img.style.top = 0
+          img.style.zIndex = 4 - i
+          if (i === 0) {
+            img.className = 'first'
+          }
+          imageDiv.appendChild(img)
+        }
+        imageContainer.appendChild(imageDiv)
+      })
+      totalNumContainer.innerHTML = total.toString()
+    }
+
+    const seriesSelector = document.querySelector('#select-series')
+    const cardSelector = document.querySelector('#select-cards')
+    const numSelector = document.querySelector('#select-num')
+    const addCardBtn = document.querySelector('#btn-add-card')
+    const downloadBtn = document.querySelector('#btn-download-img')
+
+    seriesSelector.addEventListener('change', function () {
+      const series = seriesSelector.value
+      const cards = cardName[series]
+
+      if (cardName === undefined) {
+        return
+      }
+
+      cardSelector.innerHTML = ''
+
+      cards.forEach((name, idx) => {
+        const opt = document.createElement('option')
+        opt.value = idx
+        opt.textContent = paddingToThree(idx + 1) + ' - ' + name
+        cardSelector.appendChild(opt)
+      })
+    })
+    addCardBtn.addEventListener('click', function () {
+      const series = seriesSelector.value
+      const cardIdx = parseInt(cardSelector.value, 10)
+      const num = parseInt(numSelector.value, 10)
+      if (cardCtl.addCard(series, cardIdx, num)) {
+        cardSelector.value = ''
+        numSelector.value = 1
+        showCards()
+      }
+    })
+    downloadBtn.addEventListener('click', function () {
+      const cardImageList = document.querySelector('#card-image-list')
+      html2canvas(cardImageList).then(canvas => {
+        var d = canvas.toDataURL("image/png");
+        var w = window.open('about:blank', 'image from canvas');
+        w.document.write("<img src='" + d + "' alt='from canvas'/>");
+      });
+    })
+  }
+
+</script>
+
+<body onload="load()">
+  <div class="container">
+
+    <div class="left">
+      <div class="block fix">
+        <form>
+          <div class="title">新增卡片</div>
+          <select name="series" id="select-series">
+            <option value=""></option>
+            <option value="AC1a">AC1a</option>
+            <option value="AC1b">AC1b</option>
+            <option value="AC1D">AC1D</option>
+          </select>
+          -
+          <select name="card" id="select-cards"></select>
+          x
+          <select name="num" id="select-num">
+            <option value=1>1</option>
+            <option value=2>2</option>
+            <option value=3>3</option>
+            <option value=4>4</option>
+          </select>
+          <input type="button" value="新增" id="btn-add-card">
+        </form>
+      </div>
+      <div class="block stretch">
+        <div class="title">
+          <span>卡片列表 總共 </span>
+          <span id="total-card-num">0</span>
+          <span> 張</span>
+        </div>
+        <div id="card-list"></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="block">
+        <input type="button" value="下載卡表圖" id="btn-download-img">
+      </div>
+      <div class="block">
+        <div class="title">卡表圖</div>
+        <div id="card-image-list"></div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

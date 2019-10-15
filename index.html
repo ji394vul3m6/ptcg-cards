@@ -316,8 +316,8 @@
         const textDiv = document.createElement('div')
         textDiv.textContent = cardName[series][cardIdx] + ' x ' + num.toString()
         
+        imageDiv.appendChild(textDiv)
         imageContainer.appendChild(imageDiv)
-        imageContainer.appendChild(textDiv)
       })
     }
     function showCards() {

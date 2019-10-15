@@ -31,11 +31,11 @@
   <script src="./html2canvas.min.js"></script>
   <style>
     #select-series {
-      width: 100px;
+      width: 80px;
     }
 
     #select-cards {
-      width: 200px;
+      width: 160px;
     }
 
     select {
@@ -88,7 +88,7 @@
 
     .container .left {
       flex: 1 0 30%;
-      min-width: 480px;
+      min-width: 400px;
       max-width: 800px;
       padding: 20px;
 
@@ -98,7 +98,7 @@
 
     .container .right {
       flex: 1 0 70%;
-      min-width: 480px;
+      min-width: 400px;
       max-width: 1120px;
       padding: 20px;
     }
@@ -360,18 +360,28 @@
       }
 
       if (cardCtl.addCard(series, cardIdx, num)) {
-        numSelector.value = 1
         showCards()
       }
     })
     downloadBtn.addEventListener('click', function () {
       const cardImageList = document.querySelector('#card-image-list')
+
+      const nowY = window.scrollY
+      window.scrollTo(0, 0)
+
+      cardImageList.style.width = '1440px'
+      cardImageList.style.height = '1080px'
+
       html2canvas(cardImageList, {
-        scale: 2
+        scale: 2,
       }).then(canvas => {
+        window.scrollTo(0, nowY)
+        cardImageList.style.width = ''
+        cardImageList.style.height = ''
+
         var d = canvas.toDataURL("image/png");
         var w = window.open('about:blank', 'image from canvas');
-        w.document.write("<img src='" + d + "' alt='from canvas'/>");
+        w.document.write("<img width='100%' src='" + d + "' alt='from canvas'/>");
       });
     })
     loadCards()

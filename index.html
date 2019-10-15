@@ -188,9 +188,6 @@
             card[2] += num
             find = true
           }
-          if (card[2] > 4) {
-            card[2] = 4
-          }
         })
 
         if (!find) {
@@ -202,7 +199,7 @@
         return JSON.parse(JSON.stringify(currentCards))
       }
       function addCardCount(idx) {
-        if (currentCards[idx][2] < 4) {
+        if (currentCards[idx][2] < 4 || currentCards[idx][0] === 'energy') {
           currentCards[idx][2]++
         }
       }
@@ -270,7 +267,7 @@
             cardCtl.shift(cardPos, cardPos + 1)
           }))
         }
-        if (num < 4) {
+        if (num < 4 || series === 'energy') {
           singleCard.appendChild(addBtn('+', function() {
             cardCtl.addCardCount(cardPos)
           }))
@@ -293,7 +290,8 @@
       cards.forEach(function (info, cardPos) {
         const [series, cardIdx, num] = info
         const imageDiv = document.createElement('div')
-        imageDiv.className = "card num-" + num.toString()
+        imageDiv.className = 'card'
+        imageDiv.style.marginLeft = (20 * num).toString() + 'px'
 
         function createImg(src) {
           const img = document.createElement('img')
@@ -400,6 +398,7 @@
             <option value="AC1a">AC1a</option>
             <option value="AC1b">AC1b</option>
             <option value="AC1D">AC1D</option>
+            <option value="energy">能量</option>
           </select>
           -
           <select name="card" id="select-cards"></select>

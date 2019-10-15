@@ -210,7 +210,8 @@
         }
 
         for (let i = 0; i < num; i++) {
-          const img = createImg('./test.webp')
+          const imgSrc = './' + series + '/' + paddingToThree(cardIdx + 1) + '.jpg'
+          const img = createImg(imgSrc)
           img.style.left = (0 - 20 * i).toString() + 'px'
           img.style.top = 0
           img.style.zIndex = 4 - i

@@ -19,7 +19,8 @@
   </script>
 
   <!-- Google Adsense -->
-  <script data-ad-client="ca-pub-3691469859951374" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <script data-ad-client="ca-pub-3691469859951374" async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
   <script src="./name.js"></script>
   <script src="./html2canvas.min.js"></script>
@@ -41,6 +42,11 @@
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15);
       margin-top: 20px;
       padding: 20px;
+    }
+
+    .block.space-between {
+      display: flex;
+      justify-content: space-between;
     }
 
     .block:first-child {
@@ -80,7 +86,7 @@
       height: 100%;
     }
 
-    .container .left {
+    .container>.left {
       flex: 1 0 30%;
       min-width: 400px;
       max-width: 800px;
@@ -90,7 +96,7 @@
       flex-direction: column;
     }
 
-    .container .right {
+    .container>.right {
       flex: 1 0 70%;
       min-width: 400px;
       max-width: 1120px;
@@ -137,14 +143,17 @@
     #card-image-list .card img.first {
       position: relative;
     }
-    #card-list span{
+
+    #card-list span {
       display: inline-block;
       margin-right: 8px;
     }
+
     #card-list .single-card input {
       visibility: hidden;
       margin-right: 4px;
     }
+
     #card-list .single-card:hover input {
       visibility: visible;
     }
@@ -179,7 +188,9 @@
         let find = false
         currentCards.forEach(card => {
           if (card[0] === series && card[1] === cardIdx) {
-            card[2] += num
+            if (series === 'energy' || card[2] + num <= 4) {
+              card[2] += num
+            }
             find = true
           }
         })
@@ -244,7 +255,7 @@
           btn.value = text
           btn.setAttribute('type', 'button')
           if (callback !== undefined) {
-            btn.addEventListener('click', function(e) {
+            btn.addEventListener('click', function (e) {
               callback(e)
               showCards()
             })
@@ -252,22 +263,22 @@
           return btn
         }
         if (cardPos > 0) {
-          singleCard.appendChild(addBtn('↑', function() {
+          singleCard.appendChild(addBtn('↑', function () {
             cardCtl.shift(cardPos, cardPos - 1)
           }))
         }
         if (cardPos < cards.length - 1) {
-          singleCard.appendChild(addBtn('↓', function() {
+          singleCard.appendChild(addBtn('↓', function () {
             cardCtl.shift(cardPos, cardPos + 1)
           }))
         }
         if (num < 4 || series === 'energy') {
-          singleCard.appendChild(addBtn('+', function() {
+          singleCard.appendChild(addBtn('+', function () {
             cardCtl.addCardCount(cardPos)
           }))
         }
         if (num > 0) {
-          singleCard.appendChild(addBtn('-', function() {
+          singleCard.appendChild(addBtn('-', function () {
             cardCtl.minusCardCount(cardPos)
             showCards()
           }))
@@ -307,7 +318,9 @@
 
         const textDiv = document.createElement('div')
         textDiv.textContent = cardName[series][cardIdx] + ' x ' + num.toString()
-        
+        textDiv.style.marginLeft = (-20 * (num - 1)).toString() + 'px'
+        textDiv.style.width = "calc(" + (20 * (num - 1)).toString() + 'px + 100%)'
+
         imageDiv.appendChild(textDiv)
         imageContainer.appendChild(imageDiv)
       })
@@ -317,15 +330,18 @@
       showCardImage()
     }
 
+    const filterSelector = document.querySelector("#select-filter")
     const seriesSelector = document.querySelector('#select-series')
     const cardSelector = document.querySelector('#select-cards')
     const numSelector = document.querySelector('#select-num')
     const addCardBtn = document.querySelector('#btn-add-card')
     const downloadBtn = document.querySelector('#btn-download-img')
+    let filterType = ''
 
     function loadCards() {
       const series = seriesSelector.value
       const cards = cardName[series]
+      const cardMetas = cardMeta[series]
 
       if (cardName === undefined) {
         return
@@ -334,12 +350,19 @@
       cardSelector.innerHTML = ''
 
       cards.forEach((name, idx) => {
+        if (filterType !== '' && cardMetas[idx].type !== filterType) {
+          return
+        }
         const opt = document.createElement('option')
         opt.value = idx
         opt.textContent = paddingToThree(idx + 1) + ' - ' + name
         cardSelector.appendChild(opt)
       })
     }
+    filterSelector.addEventListener('change', function () {
+      filterType = filterSelector.value
+      loadCards()
+    })
 
     seriesSelector.addEventListener('change', loadCards)
     addCardBtn.addEventListener('click', function () {
@@ -387,7 +410,26 @@
     <div class="left">
       <div class="block fix">
         <form>
-          <div class="title">新增卡片</div>
+          <div class="title">
+            <div>新增卡片</div>
+            <div>
+              類型篩選
+              <select name="filter" id="select-filter">
+                <option value="">不限</option>
+                <option value="草">草</option>
+                <option value="火">火</option>
+                <option value="水">水</option>
+                <option value="電">電</option>
+                <option value="超能力">超能力</option>
+                <option value="格鬥">格鬥</option>
+                <option value="惡">惡</option>
+                <option value="鋼">鋼</option>
+                <option value="妖精">妖精</option>
+                <option value="能量">能量</option>
+                </option>
+              </select>
+            </div>
+          </div>
           <select name="series" id="select-series">
             <option value="AC1a">AC1a</option>
             <option value="AC1b">AC1b</option>
@@ -416,8 +458,13 @@
       </div>
     </div>
     <div class="right">
-      <div class="block">
-        <input type="button" value="下載卡表圖" id="btn-download-img">
+      <div class="block space-between">
+        <div class="left">
+          <input type="button" value="下載卡表圖" id="btn-download-img">
+        </div>
+        <div class="right">
+          <span>使用上錯誤請截圖或說明寄到 danielwu.ee[at]gmail.com</span>
+        </div>
       </div>
       <div class="block">
         <div class="title">卡表圖</div>

@@ -6,6 +6,10 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="renderer" content="webkit">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+  <meta name=description content="寶可夢卡表生成器">
+  <meta name=keywords content="寶可夢,集換式卡片,PTCG">
+
   <title>PTCG 卡表生成</title>
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -37,16 +41,22 @@
       padding: 4px;
     }
 
+    .button-list {
+      white-space: nowrap;
+      margin-right: 10px;
+    }
+
     .block {
       border: 1px solid rgba(0, 0, 0, 0.15);
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15);
       margin-top: 20px;
-      padding: 20px;
+      padding: 10px;
     }
 
     .block.space-between {
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
     .block:first-child {
@@ -62,8 +72,28 @@
     }
 
     .block .title {
-      margin-bottom: 8px;
+      padding-bottom: 10px;
       font-size: 1.2em;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+    }
+
+    .block .content {
+      margin-top: 10px;
+    }
+
+    .block .content .row {
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .block .content .row:last-child {
+      margin-bottom: 0px;
+    }
+
+    .row>div {
+      margin-right: 10px;
     }
 
     body {
@@ -88,7 +118,7 @@
 
     .container>.left {
       flex: 1 0 30%;
-      min-width: 400px;
+      min-width: 360px;
       max-width: 800px;
       padding: 20px;
 
@@ -98,7 +128,7 @@
 
     .container>.right {
       flex: 1 0 70%;
-      min-width: 400px;
+      min-width: 360px;
       max-width: 1120px;
       padding: 20px;
     }
@@ -149,19 +179,86 @@
       margin-right: 8px;
     }
 
-    #card-list .single-card input {
-      visibility: hidden;
-      margin-right: 4px;
+    #card-list .single-card {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      height: 28px;
+
+      cursor: default;
+      user-select: none;
     }
 
-    #card-list .single-card:hover input {
-      visibility: visible;
+    #card-list .single-card .act-list {
+      /* display: inline-block; */
+      white-space: nowrap;
+      /* visibility: hidden; */
+      display: none;
+    }
+
+    #card-list .single-card:hover .act-list,
+    #card-list .single-card:focus .act-list {
+      /* visibility: visible; */
+      display: inline-block;
+    }
+
+    .text-button {
+      display: inline-block;
+      border: 1px solid rgba(0, 0, 0, 0.8);
+      color: rgba(0, 0, 0, 0.8);
+      padding: 4px;
+      cursor: pointer;
+      height: 28px;
+      vertical-align: center;
+      margin-left: 10px;
+
+      user-select: none;
+      -moz-user-select: none;
+    }
+
+    .text-button.icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 24px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .text-button.icon.delete {
+      color: rgba(255, 100, 100, 0.8);
+    }
+
+    .text-button:hover {
+      background: rgba(0, 0, 0, 0.15)
+    }
+
+    @media (max-width:480px) {
+      #card-list .single-card .act-list {
+        margin-top: 4px;
+        /* display: block; */
+      }
+
+      #card-list .single-card:focus .act-list {
+        display: block;
+      }
     }
   </style>
 </head>
 
 <script>
   function load() {
+    function copyToClipboard(text) {
+      const input = document.createElement('input');
+      input.value = text;
+      const body = document.querySelector('body');
+      body.append(input);
+
+      input.select();
+      document.execCommand('copy');
+      input.remove();
+    }
     function paddingToThree(num) {
       if (num >= 100) {
         return num
@@ -170,6 +267,22 @@
         return '0' + num.toString()
       }
       return '00' + num.toString()
+    }
+    function arrayToBase64(bytes) {
+      let binary = '';
+      let len = bytes.byteLength;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+    }
+    function base64ToArray(base64) {
+      const chars = window.atob(base64)
+      const ret = new Uint8Array(chars.length)
+      for (let i = 0; i < chars.length; i++) {
+        ret[i] = chars[i].charCodeAt()
+      }
+      return ret
     }
 
     const cardCtl = function () {
@@ -216,10 +329,32 @@
           currentCards.splice(idx, 1)
         }
       }
+      function removeCard(idx) {
+        currentCards.splice(idx, 1)
+      }
       function shift(i, j) {
         const tmp = currentCards[i]
         currentCards[i] = currentCards[j]
         currentCards[j] = tmp
+      }
+      function getCardCodes() {
+        const cardMap = {}
+        currentCards.forEach(function (card) {
+          series = card[0]
+          id = card[1]
+          num = card[2]
+          if (cardMap[series] === undefined) { cardMap[series] = [] }
+          cardMap[series].push(id, num)
+        })
+        const codes = []
+        Object.keys(cardMap).forEach(function (series) {
+          const arr = new Uint8Array(cardMap[series].length)
+          cardMap[series].forEach((val, idx) => {
+            arr[idx] = val
+          })
+          codes.push(series + '.' + arrayToBase64(arr))
+        })
+        return codes.join('-')
       }
       return {
         resetCards,
@@ -227,7 +362,9 @@
         getCards,
         addCardCount,
         minusCardCount,
-        shift
+        removeCard,
+        shift,
+        getCardCodes,
       }
     }()
 
@@ -244,16 +381,25 @@
         const span = document.createElement('span')
         const singleCard = document.createElement('div')
         singleCard.className = 'single-card'
+        singleCard.setAttribute('tabindex', 0)
 
         total += num
         span.textContent = series + ' - ' + paddingToThree(cardIdx + 1) + ' - ' + cardName[series][cardIdx] + ' x ' + num.toString()
 
         singleCard.appendChild(span)
 
-        function addBtn(text, callback) {
-          const btn = document.createElement('input')
-          btn.value = text
-          btn.setAttribute('type', 'button')
+        const btnContainer = document.createElement('div')
+        btnContainer.className = 'act-list'
+
+        function addBtn(text, callback, className) {
+          const btn = document.createElement('div')
+          btn.className = 'text-button icon'
+          btn.textContent = text
+
+          if (className !== undefined) {
+            btn.className += btn.className + ' ' + className
+          }
+
           if (callback !== undefined) {
             btn.addEventListener('click', function (e) {
               callback(e)
@@ -263,26 +409,32 @@
           return btn
         }
         if (cardPos > 0) {
-          singleCard.appendChild(addBtn('↑', function () {
+          btnContainer.appendChild(addBtn('↑', function () {
             cardCtl.shift(cardPos, cardPos - 1)
           }))
         }
         if (cardPos < cards.length - 1) {
-          singleCard.appendChild(addBtn('↓', function () {
+          btnContainer.appendChild(addBtn('↓', function () {
             cardCtl.shift(cardPos, cardPos + 1)
           }))
         }
         if (num < 4 || series === 'energy') {
-          singleCard.appendChild(addBtn('+', function () {
+          btnContainer.appendChild(addBtn('+', function () {
             cardCtl.addCardCount(cardPos)
           }))
         }
         if (num > 0) {
-          singleCard.appendChild(addBtn('-', function () {
+          btnContainer.appendChild(addBtn('-', function () {
             cardCtl.minusCardCount(cardPos)
             showCards()
           }))
         }
+
+        btnContainer.appendChild(addBtn('X', function () {
+          cardCtl.removeCard(cardPos)
+        }, 'delete'))
+
+        singleCard.appendChild(btnContainer)
         container.appendChild(singleCard)
       })
       totalNumContainer.innerHTML = total.toString()
@@ -336,6 +488,7 @@
     const numSelector = document.querySelector('#select-num')
     const addCardBtn = document.querySelector('#btn-add-card')
     const downloadBtn = document.querySelector('#btn-download-img')
+    const shareBtn = document.querySelector('#btn-get-code')
     let filterType = ''
 
     function loadCards() {
@@ -399,6 +552,34 @@
         w.document.write("<img width='100%' src='" + d + "' alt='from canvas'/>");
       });
     })
+    shareBtn.addEventListener('click', function () {
+      const code = cardCtl.getCardCodes()
+      const url = new URL(window.location.href)
+      const shareURL = url.origin + url.pathname + '?code=' + code
+      copyToClipboard(shareURL)
+
+      alert('分享網址 ' + shareURL + ' 已經複製')
+    })
+
+    function loadCode() {
+      const url = new URL(document.location.href)
+      const code = url.searchParams.get('code')
+      if (code === '' || code === undefined || code === null) {
+        return
+      }
+
+      const partials = code.split('-')
+      const cards = []
+      partials.forEach(function (partial) {
+        [series, base64] = partial.split('.')
+        const arr = base64ToArray(base64)
+        for (let i = 0; i < arr.length; i += 2) {
+          cardCtl.addCard(series, arr[i], arr[i + 1])
+        }
+      })
+      showCards()
+    }
+    loadCode()
     loadCards()
   }
 
@@ -412,8 +593,10 @@
         <form>
           <div class="title">
             <div>新增卡片</div>
-            <div>
-              類型篩選
+          </div>
+          <div class="content">
+            <div class="row">
+              <div>類型篩選</div>
               <select name="filter" id="select-filter">
                 <option value="">不限</option>
                 <option value="草">草</option>
@@ -432,23 +615,25 @@
                 </option>
               </select>
             </div>
+            <div class="row">
+              <select name="series" id="select-series">
+                <option value="AC1a">AC1a</option>
+                <option value="AC1b">AC1b</option>
+                <option value="AC1D">AC1D</option>
+                <option value="energy">能量</option>
+              </select>
+              -
+              <select name="card" id="select-cards"></select>
+              x
+              <select name="num" id="select-num">
+                <option value=1>1</option>
+                <option value=2>2</option>
+                <option value=3>3</option>
+                <option value=4>4</option>
+              </select>
+              <div class="text-button" id="btn-add-card">新增</div>
+            </div>
           </div>
-          <select name="series" id="select-series">
-            <option value="AC1a">AC1a</option>
-            <option value="AC1b">AC1b</option>
-            <option value="AC1D">AC1D</option>
-            <option value="energy">能量</option>
-          </select>
-          -
-          <select name="card" id="select-cards"></select>
-          x
-          <select name="num" id="select-num">
-            <option value=1>1</option>
-            <option value=2>2</option>
-            <option value=3>3</option>
-            <option value=4>4</option>
-          </select>
-          <input type="button" value="新增" id="btn-add-card">
         </form>
       </div>
       <div class="block stretch">
@@ -457,21 +642,22 @@
           <span id="total-card-num">0</span>
           <span> 張</span>
         </div>
-        <div id="card-list"></div>
+        <div class="content" id="card-list"></div>
       </div>
     </div>
     <div class="right">
       <div class="block space-between">
-        <div class="left">
-          <input type="button" value="下載卡表圖" id="btn-download-img">
+        <div class="button-list">
+          <div class="text-button" id="btn-download-img">下載卡表圖</div>
+          <div class="text-button" id="btn-get-code">取得分享網址</div>
         </div>
-        <div class="right">
+        <div>
           <span>使用上錯誤請截圖或說明寄到 danielwu.ee[at]gmail.com</span>
         </div>
       </div>
       <div class="block">
         <div class="title">卡表圖</div>
-        <div id="card-image-list"></div>
+        <div class="content" id="card-image-list"></div>
       </div>
     </div>
   </div>

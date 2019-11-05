@@ -51,6 +51,7 @@
       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15);
       margin-top: 20px;
       padding: 10px;
+      background: white;
     }
 
     .block.space-between {
@@ -101,6 +102,7 @@
       width: 100vw;
       margin: 0;
       font-family: monospace;
+      background: rgba(0, 0, 0, 0.05);
     }
 
     div {
@@ -119,7 +121,7 @@
     .container>.left {
       flex: 1 0 30%;
       min-width: 360px;
-      max-width: 800px;
+      /* max-width: 800px; */
       padding: 20px;
 
       display: flex;
@@ -129,7 +131,7 @@
     .container>.right {
       flex: 1 0 70%;
       min-width: 360px;
-      max-width: 1120px;
+      /* max-width: 1120px; */
       padding: 20px;
     }
 
@@ -172,6 +174,7 @@
 
     #card-image-list .card img.first {
       position: relative;
+      cursor: zoom-in;
     }
 
     #card-list span {
@@ -234,6 +237,47 @@
       background: rgba(0, 0, 0, 0.15)
     }
 
+    #name-filter {
+      padding: 3px;
+      width: 80px;
+      display: block;
+      box-sizing: border-box;
+    }
+
+    .filter-type-selector {
+      display: flex;
+      align-items: center;
+    }
+
+    #zoom-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.5);
+      visibility: hidden;
+    }
+
+    #zoom-card {
+      height: 80%;
+      width: auto;
+      cursor: zoom-out;
+
+      transition: ease-in-out all .3s;
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+
+    #zoom-card.shrink {
+      transform: translate(0, -10%);
+      opacity: 0.01;
+    }
+
     @media (max-width:480px) {
       #card-list .single-card .act-list {
         margin-top: 4px;
@@ -249,6 +293,22 @@
 
 <script>
   function load() {
+    const imageContainer = document.querySelector('#card-image-list')
+    const filterSelector = document.querySelector("#select-filter")
+    const seriesSelector = document.querySelector('#select-series')
+    const nameFilter = document.querySelector('#name-filter')
+    const cardSelector = document.querySelector('#select-cards')
+    const numSelector = document.querySelector('#select-num')
+    const addCardBtn = document.querySelector('#btn-add-card')
+    const downloadBtn = document.querySelector('#btn-download-img')
+    const shareBtn = document.querySelector('#btn-get-code')
+    const filterRadios = document.querySelectorAll('input[name=filter-type]')
+    const nameCardSelector = document.querySelector('#name-select-cards')
+    const formDom = document.querySelector('form')
+
+    const zoomContainer = document.querySelector('#zoom-container')
+    const zoomCard = document.querySelector('#zoom-card')
+
     function copyToClipboard(text) {
       const input = document.createElement('input');
       input.value = text;
@@ -441,14 +501,18 @@
     }
     function showCardImage() {
       const cards = cardCtl.getCards()
-      const imageContainer = document.querySelector('#card-image-list')
       imageContainer.innerHTML = ''
 
       cards.forEach(function (info, cardPos) {
         const [series, cardIdx, num] = info
+
+        let shiftDis = 20
+        if (series === 'energy') {
+          shiftDis = 10
+        }
         const imageDiv = document.createElement('div')
         imageDiv.className = 'card'
-        imageDiv.style.marginLeft = (20 * num).toString() + 'px'
+        imageDiv.style.marginLeft = (shiftDis * num).toString() + 'px'
 
         function createImg(src) {
           const img = document.createElement('img')
@@ -459,9 +523,9 @@
         for (let i = 0; i < num; i++) {
           const imgSrc = './' + series + '/' + paddingToThree(cardIdx + 1) + '.jpg'
           const img = createImg(imgSrc)
-          img.style.left = (0 - 20 * i).toString() + 'px'
+          img.style.left = (0 - shiftDis * i).toString() + 'px'
           img.style.top = 0
-          img.style.zIndex = 4 - i
+          img.style.zIndex = num - i
           if (i === 0) {
             img.className = 'first'
           }
@@ -470,8 +534,9 @@
 
         const textDiv = document.createElement('div')
         textDiv.textContent = cardName[series][cardIdx] + ' x ' + num.toString()
-        textDiv.style.marginLeft = (-20 * (num - 1)).toString() + 'px'
-        textDiv.style.width = "calc(" + (20 * (num - 1)).toString() + 'px + 100%)'
+
+        textDiv.style.marginLeft = (-1 * shiftDis * (num - 1)).toString() + 'px'
+        textDiv.style.width = "calc(" + (shiftDis * (num - 1)).toString() + 'px + 100%)'
 
         imageDiv.appendChild(textDiv)
         imageContainer.appendChild(imageDiv)
@@ -482,44 +547,67 @@
       showCardImage()
     }
 
-    const filterSelector = document.querySelector("#select-filter")
-    const seriesSelector = document.querySelector('#select-series')
-    const cardSelector = document.querySelector('#select-cards')
-    const numSelector = document.querySelector('#select-num')
-    const addCardBtn = document.querySelector('#btn-add-card')
-    const downloadBtn = document.querySelector('#btn-download-img')
-    const shareBtn = document.querySelector('#btn-get-code')
     let filterType = ''
 
-    function loadCards() {
-      const series = seriesSelector.value
-      const cards = cardName[series]
-      const cardMetas = cardMeta[series]
-
+    function loadCards(loadFilter) {
+      let cards = []
+      let cardMetas = []
       if (cardName === undefined) {
         return
       }
-
       cardSelector.innerHTML = ''
-
-      cards.forEach((name, idx) => {
-        if (filterType !== '' && cardMetas[idx].type !== filterType) {
-          return
-        }
-        const opt = document.createElement('option')
-        opt.value = idx
-        opt.textContent = paddingToThree(idx + 1) + ' - ' + name
-        cardSelector.appendChild(opt)
-      })
+      if (loadFilter === 'name') {
+        const keyword = nameFilter.value
+        cards = Object.keys(cardName).forEach(series => {
+          cards = cardName[series]
+          cardMetas = cardMeta[series]
+          cards.forEach((name, idx) => {
+            if (keyword !== '' && name.indexOf(keyword) < 0) {
+              return
+            }
+            const opt = document.createElement('option')
+            opt.value = idx
+            opt.textContent = series + ' - ' + paddingToThree(idx + 1) + ' - ' + name
+            opt.dataset.series = series
+            cardSelector.appendChild(opt)
+          })
+        })
+      } else {
+        const series = seriesSelector.value
+        cards = cardName[series]
+        cardMetas = cardMeta[series]
+        cards.forEach((name, idx) => {
+          if (filterType !== '' && cardMetas[idx].type !== filterType) {
+            return
+          }
+          const opt = document.createElement('option')
+          opt.value = idx
+          opt.textContent = paddingToThree(idx + 1) + ' - ' + name
+          opt.dataset.series = series
+          cardSelector.appendChild(opt)
+        })
+      }
     }
     filterSelector.addEventListener('change', function () {
       filterType = filterSelector.value
       loadCards()
     })
 
-    seriesSelector.addEventListener('change', loadCards)
-    addCardBtn.addEventListener('click', function () {
+    seriesSelector.addEventListener('change', function () {
+      loadCards()
+
       const series = seriesSelector.value
+      const num = parseInt(numSelector.value, 10)
+      document.querySelectorAll('.energy-num-option').forEach(dom => {
+        dom.hidden = (series !== 'energy')
+      })
+      if (series !== 'energy' && num > 4) {
+        numSelector.value = '4'
+      }
+    })
+    addCardBtn.addEventListener('click', function () {
+      const selectOpt = document.querySelector('#select-cards > option:checked')
+      const series = selectOpt.dataset.series
       const cardIdx = parseInt(cardSelector.value, 10)
       const num = parseInt(numSelector.value, 10)
 
@@ -560,6 +648,44 @@
 
       alert('分享網址 ' + shareURL + ' 已經複製')
     })
+    filterRadios.forEach(function (radio) {
+      radio.addEventListener('change', function (e) {
+        const filterType = formDom['filter-type'].value
+        if (filterType === 'type') {
+          nameFilter.setAttribute('type', 'hidden')
+          filterSelector.disabled = false
+          seriesSelector.hidden = false
+        } else {
+          nameFilter.setAttribute('type', 'text')
+          filterSelector.disabled = true
+          seriesSelector.hidden = true
+        }
+        loadCards(filterType)
+      })
+    })
+    imageContainer.addEventListener('click', function (e) {
+      const target = e.target
+      if (target.tagName.toLowerCase() !== 'img') {
+        return
+      }
+      const src = target.src
+      zoomCard.src = src
+      zoomCard.className = ''
+      zoomContainer.style.visibility = 'visible'
+    })
+    nameFilter.addEventListener('keyup', function (e) {
+      if (e.keyCode === 8 || e.keyCode === 46) {
+        loadCards('name')
+      } else if (e.keyCode === 13) {
+        e.stopPropagation()
+        e.preventDefault()
+      }
+    })
+    nameFilter.addEventListener('compositionend', function (e) {
+
+      const keyword = nameFilter.value
+      loadCards('name')
+    })
 
     function loadCode() {
       const url = new URL(document.location.href)
@@ -579,6 +705,12 @@
       })
       showCards()
     }
+
+    zoomContainer.addEventListener('click', function () {
+      zoomCard.className = 'shrink'
+      zoomContainer.style.visibility = 'hidden'
+    })
+
     loadCode()
     loadCards()
   }
@@ -596,26 +728,34 @@
           </div>
           <div class="content">
             <div class="row">
-              <div>類型篩選</div>
-              <select name="filter" id="select-filter">
-                <option value="">不限</option>
-                <option value="草">草</option>
-                <option value="火">火</option>
-                <option value="水">水</option>
-                <option value="電">電</option>
-                <option value="超能力">超能力</option>
-                <option value="格鬥">格鬥</option>
-                <option value="惡">惡</option>
-                <option value="鋼">鋼</option>
-                <option value="妖精">妖精</option>
-                <option value="支援者">支援者</option>
-                <option value="場地">場地</option>
-                <option value="道具">道具</option>
-                <option value="能量">能量</option>
-                </option>
-              </select>
+              <div class="filter-type-selector">
+                <input type="radio" name="filter-type" value="type" checked>
+                <div>屬性篩選</div>
+                <select name="filter" id="select-filter">
+                  <option value="">不限</option>
+                  <option value="草">草</option>
+                  <option value="火">火</option>
+                  <option value="水">水</option>
+                  <option value="電">電</option>
+                  <option value="超能力">超能力</option>
+                  <option value="格鬥">格鬥</option>
+                  <option value="惡">惡</option>
+                  <option value="鋼">鋼</option>
+                  <option value="妖精">妖精</option>
+                  <option value="支援者">支援者</option>
+                  <option value="場地">場地</option>
+                  <option value="道具">道具</option>
+                  <option value="能量">能量</option>
+                  </option>
+                </select>
+              </div>
+              <div class="filter-type-selector">
+                <input type="radio" name="filter-type" value="name">
+                <div>關鍵字篩選</div>
+              </div>
             </div>
             <div class="row">
+              <input type="hidden" id="name-filter" placeholder="請輸入">
               <select name="series" id="select-series">
                 <option value="AC1a">AC1a</option>
                 <option value="AC1b">AC1b</option>
@@ -630,6 +770,12 @@
                 <option value=2>2</option>
                 <option value=3>3</option>
                 <option value=4>4</option>
+                <option value=5 hidden class="energy-num-option">5</option>
+                <option value=5 hidden class="energy-num-option">6</option>
+                <option value=5 hidden class="energy-num-option">7</option>
+                <option value=5 hidden class="energy-num-option">8</option>
+                <option value=5 hidden class="energy-num-option">9</option>
+                <option value=5 hidden class="energy-num-option">10</option>
               </select>
               <div class="text-button" id="btn-add-card">新增</div>
             </div>
@@ -660,6 +806,9 @@
         <div class="content" id="card-image-list"></div>
       </div>
     </div>
+  </div>
+  <div id="zoom-container">
+    <img id="zoom-card" class="shrink">
   </div>
 </body>
 

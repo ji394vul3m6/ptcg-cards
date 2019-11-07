@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+  <meta name=description content="寶可夢卡表生成器">
+  <meta name=keywords content="寶可夢,集換式卡片,PTCG">
+
+  <title>PTCG 卡表圖</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-57172336-6"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-57172336-6');
+  </script>
+
+  <!-- Google Adsense -->
+  <script data-ad-client="ca-pub-3691469859951374" async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+  <script src="./name.js"></script>
+  <style>
+    #select-series {
+      width: 80px;
+    }
+
+    #select-cards {
+      width: 160px;
+    }
+
+    select {
+      padding: 4px;
+    }
+
+    .button-list {
+      white-space: nowrap;
+      margin-right: 10px;
+    }
+
+    .block {
+      /* border: 1px solid rgba(0, 0, 0, 0.15); */
+      /* box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15); */
+      margin-top: 20px;
+      padding: 10px;
+      background: white;
+    }
+
+    .block.space-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .block:first-child {
+      margin-top: 0;
+    }
+
+    .block.fix {
+      flex: 0 0 auto;
+    }
+
+    .block.stretch {
+      flex: 1;
+    }
+
+    .block .title {
+      padding-bottom: 10px;
+      font-size: 1.2em;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+    }
+
+    .block .content {
+      margin-top: 10px;
+    }
+
+    .block .content .row {
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .block .content .row:last-child {
+      margin-bottom: 0px;
+    }
+
+    .row>div {
+      margin-right: 10px;
+    }
+
+    body {
+      height: 100vh;
+      width: 100vw;
+      margin: 0;
+      font-family: monospace;
+      /* background: rgba(0, 0, 0, 0.05); */
+    }
+
+    div {
+      box-sizing: border-box;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+
+      justify-content: center;
+      align-items: stretch;
+      height: 100%;
+    }
+
+    .container>.left {
+      flex: 1 0 30%;
+      min-width: 360px;
+      /* max-width: 800px; */
+      padding: 20px;
+
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container>.right {
+      flex: 1 0 70%;
+      min-width: 360px;
+      /* max-width: 1120px; */
+      /* padding: 20px; */
+    }
+
+    #card-image-list {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+    }
+
+    #card-image-list .card {
+      flex: 0 0 10%;
+      margin-right: 20px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    #card-image-list .card.num-2 {
+      /* flex-basis: calc(12.5%) */
+      /* margin-left: 2.5%; */
+      margin-left: 20px;
+    }
+
+    #card-image-list .card.num-3 {
+      /* flex-basis: calc(15%) */
+      /* margin-left: 5%; */
+      margin-left: 40px;
+    }
+
+    #card-image-list .card.num-4 {
+      /* flex-basis: calc(17.5%) */
+      /* margin-left: 7.5%; */
+      margin-left: 60px;
+    }
+
+    #card-image-list .card img {
+      width: 100%;
+      background: gray;
+      position: absolute;
+    }
+
+    #card-image-list .card img.first {
+      position: relative;
+      cursor: zoom-in;
+    }
+
+    #card-list span {
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    #card-list .single-card {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      height: 28px;
+
+      cursor: default;
+      user-select: none;
+    }
+
+    #card-list .single-card .act-list {
+      /* display: inline-block; */
+      white-space: nowrap;
+      /* visibility: hidden; */
+      display: none;
+    }
+
+    #card-list .single-card:hover .act-list,
+    #card-list .single-card:focus .act-list {
+      /* visibility: visible; */
+      display: inline-block;
+    }
+
+    .text-button {
+      display: inline-block;
+      border: 1px solid rgba(0, 0, 0, 0.8);
+      color: rgba(0, 0, 0, 0.8);
+      padding: 4px;
+      cursor: pointer;
+      height: 28px;
+      vertical-align: center;
+      margin-left: 10px;
+
+      user-select: none;
+      -moz-user-select: none;
+    }
+
+    .text-button.icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 24px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .text-button.icon.delete {
+      color: rgba(255, 100, 100, 0.8);
+    }
+
+    .text-button:hover {
+      background: rgba(0, 0, 0, 0.15)
+    }
+
+    #name-filter {
+      padding: 3px;
+      width: 80px;
+      display: block;
+      box-sizing: border-box;
+    }
+
+    .filter-type-selector {
+      display: flex;
+      align-items: center;
+    }
+
+    #zoom-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.5);
+      visibility: hidden;
+    }
+
+    #zoom-card {
+      height: 80%;
+      width: auto;
+      cursor: zoom-out;
+
+      transition: ease-in-out all .3s;
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+
+    #zoom-card.shrink {
+      transform: translate(0, -10%);
+      opacity: 0.01;
+    }
+
+    @media (max-width:480px) {
+      #card-list .single-card .act-list {
+        margin-top: 4px;
+        /* display: block; */
+      }
+
+      #card-list .single-card:focus .act-list {
+        display: block;
+      }
+    }
+  </style>
+</head>
+
+<script>
+  function load() {
+    const imageContainer = document.querySelector('#card-image-list')
+
+    function paddingToThree(num) {
+      if (num >= 100) {
+        return num
+      }
+      if (num >= 10) {
+        return '0' + num.toString()
+      }
+      return '00' + num.toString()
+    }
+    function arrayToBase64(bytes) {
+      let binary = '';
+      let len = bytes.byteLength;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+    }
+    function base64ToArray(base64) {
+      const chars = window.atob(base64)
+      const ret = new Uint8Array(chars.length)
+      for (let i = 0; i < chars.length; i++) {
+        ret[i] = chars[i].charCodeAt()
+      }
+      return ret
+    }
+
+    const cardCtl = function () {
+      let currentCards = []
+      function resetCards() {
+        currentCards = []
+      }
+      function addCard(series, cardIdx, num) {
+        if (series === '') {
+          return false
+        }
+        if (cardIdx === '') {
+          return false
+        }
+
+        let find = false
+        currentCards.forEach(card => {
+          if (card[0] === series && card[1] === cardIdx) {
+            if (series === 'energy' || card[2] + num <= 4) {
+              card[2] += num
+            }
+            find = true
+          }
+        })
+
+        if (!find) {
+          currentCards.push([series, cardIdx, num])
+        }
+        return true
+      }
+      function getCards() {
+        return JSON.parse(JSON.stringify(currentCards))
+      }
+      function addCardCount(idx) {
+        if (currentCards[idx][2] < 4 || currentCards[idx][0] === 'energy') {
+          currentCards[idx][2]++
+        }
+      }
+      function minusCardCount(idx) {
+        if (currentCards[idx][2] > 0) {
+          currentCards[idx][2]--
+        }
+        if (currentCards[idx][2] === 0) {
+          currentCards.splice(idx, 1)
+        }
+      }
+      function removeCard(idx) {
+        currentCards.splice(idx, 1)
+      }
+      function shift(i, j) {
+        const tmp = currentCards[i]
+        currentCards[i] = currentCards[j]
+        currentCards[j] = tmp
+      }
+      function getCardCodes() {
+        const cardMap = {}
+        currentCards.forEach(function (card) {
+          series = card[0]
+          id = card[1]
+          num = card[2]
+          if (cardMap[series] === undefined) { cardMap[series] = [] }
+          cardMap[series].push(id, num)
+        })
+        const codes = []
+        Object.keys(cardMap).forEach(function (series) {
+          const arr = new Uint8Array(cardMap[series].length)
+          cardMap[series].forEach((val, idx) => {
+            arr[idx] = val
+          })
+          codes.push(series + '.' + arrayToBase64(arr))
+        })
+        return codes.join('-')
+      }
+      return {
+        resetCards,
+        addCard,
+        getCards,
+        addCardCount,
+        minusCardCount,
+        removeCard,
+        shift,
+        getCardCodes,
+      }
+    }()
+    function showCardImage() {
+      const cards = cardCtl.getCards()
+      imageContainer.innerHTML = ''
+
+      cards.forEach(function (info, cardPos) {
+        const [series, cardIdx, num] = info
+
+        let shiftDis = 20
+        if (series === 'energy') {
+          shiftDis = 10
+        }
+        const imageDiv = document.createElement('div')
+        imageDiv.className = 'card'
+        imageDiv.style.marginLeft = (shiftDis * num).toString() + 'px'
+
+        function createImg(src) {
+          const img = document.createElement('img')
+          img.src = src
+          return img
+        }
+
+        for (let i = 0; i < num; i++) {
+          const imgSrc = './' + series + '/' + paddingToThree(cardIdx + 1) + '.jpg'
+          const img = createImg(imgSrc)
+          img.style.left = (0 - shiftDis * i).toString() + 'px'
+          img.style.top = 0
+          img.style.zIndex = num - i
+          if (i === 0) {
+            img.className = 'first'
+          }
+          imageDiv.appendChild(img)
+        }
+
+        const textDiv = document.createElement('div')
+        textDiv.textContent = cardName[series][cardIdx] + ' x ' + num.toString()
+
+        textDiv.style.marginLeft = (-1 * shiftDis * (num - 1)).toString() + 'px'
+        textDiv.style.width = "calc(" + (shiftDis * (num - 1)).toString() + 'px + 100%)'
+
+        imageDiv.appendChild(textDiv)
+        imageContainer.appendChild(imageDiv)
+      })
+    }
+    function showCards() {
+      showCardImage()
+    }
+
+    let filterType = ''
+
+    function loadCode() {
+      const url = new URL(document.location.href)
+      const code = url.searchParams.get('code')
+      if (code === '' || code === undefined || code === null) {
+        return
+      }
+
+      const partials = code.split('-')
+      const cards = []
+      partials.forEach(function (partial) {
+        [series, base64] = partial.split('.')
+        const arr = base64ToArray(base64)
+        for (let i = 0; i < arr.length; i += 2) {
+          cardCtl.addCard(series, arr[i], arr[i + 1])
+        }
+      })
+      showCards()
+    }
+
+    loadCode()
+  }
+
+</script>
+
+<body onload="load()">
+  <div class="container">
+    <div class="right">
+      <div class="block">
+        <div class="content" id="card-image-list"></div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

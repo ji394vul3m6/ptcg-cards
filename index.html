@@ -636,10 +636,39 @@
         cardImageList.style.height = ''
 
         var d = canvas.toDataURL("image/png");
-        var w = window.open('about:blank', 'image from canvas');
-        w.document.write("<img width='100%' src='" + d + "' alt='from canvas'/>");
+        const blob = dataURItoBlob(d)
+        downloadRawFile(blob, 'cards.png')
+        // var w = window.open('about:blank', 'image from canvas');
+        // w.document.write("<img width='100%' src='" + d + "' alt='from canvas'/>");
       });
     })
+
+    function dataURItoBlob(dataURI) {
+      var byteString = atob(dataURI.split(',')[1]);
+      var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+      var ab = new ArrayBuffer(byteString.length);
+      var ia = new Uint8Array(ab);
+
+      for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      var blob = new Blob([ab], { type: mimeString });
+      return blob;
+    }
+    function downloadRawFile(blobData, filename) {
+      if (blobData != null && navigator.msSaveBlob) {
+        navigator.msSaveBlob(blobData, filename);
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blobData);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      window.URL.revokeObjectURL(link.href);
+      document.body.removeChild(link);
+    }
+
     shareBtn.addEventListener('click', function () {
       const code = cardCtl.getCardCodes()
       const url = new URL(window.location.href)

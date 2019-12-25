@@ -292,7 +292,27 @@
 </head>
 
 <script>
-  alert('作者國外取材(?)中 預計 23 號晚上回到台灣完整更新 2A 和 2B!')
+  function getMobileOperatingSystem() {
+    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+    // Windows Phone must come first because its UA also contains "Android"
+    if (/windows phone/i.test(userAgent)) {
+      return "Windows Phone";
+    }
+
+    if (/android/i.test(userAgent)) {
+      return "Android";
+    }
+
+    // iOS detection from: http://stackoverflow.com/a/9039885/177710
+    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+      return "iOS";
+    }
+
+    return "unknown";
+  }
+
+  alert('2B 上線瞜~ 人肉輸入名稱跟屬性可能多少有點錯誤，再請大家有發現可以寄信給我讓我修正QQ')
   function load() {
     const imageContainer = document.querySelector('#card-image-list')
     const filterSelector = document.querySelector("#select-filter")
@@ -661,6 +681,16 @@
         navigator.msSaveBlob(blobData, filename);
         return;
       }
+
+      if ("iOS" === getMobileOperatingSystem()) {
+        const reader = new FileReader()
+        reader.onload = function (e) {
+          window.location.href = reader.result
+        }
+        reader.readAsDataURL(blobData)
+        return
+      }
+
       const link = document.createElement('a');
       link.href = window.URL.createObjectURL(blobData);
       link.setAttribute('download', filename);
@@ -792,6 +822,7 @@
                 <option value="AC1b">AC1b</option>
                 <option value="AC1D">AC1D</option>
                 <option value="AC2a">AC2a</option>
+                <option value="AC2b">AC2b</option>
                 <option value="energy">能量</option>
               </select>
               -

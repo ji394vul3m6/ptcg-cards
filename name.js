@@ -1869,6 +1869,7 @@ const cardMeta = {
     { type: '一般' },
     { type: '一般' },
     { type: '一般' },
+    { type: '一般' },
     { type: '道具' },
     { type: '道具' },
     { type: '道具' },

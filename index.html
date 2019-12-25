@@ -292,6 +292,26 @@
 </head>
 
 <script>
+  function getMobileOperatingSystem() {
+    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+    // Windows Phone must come first because its UA also contains "Android"
+    if (/windows phone/i.test(userAgent)) {
+      return "Windows Phone";
+    }
+
+    if (/android/i.test(userAgent)) {
+      return "Android";
+    }
+
+    // iOS detection from: http://stackoverflow.com/a/9039885/177710
+    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+      return "iOS";
+    }
+
+    return "unknown";
+  }
+
   alert('2B 上線瞜~ 人肉輸入名稱跟屬性可能多少有點錯誤，再請大家有發現可以寄信給我讓我修正QQ')
   function load() {
     const imageContainer = document.querySelector('#card-image-list')
@@ -624,23 +644,32 @@
       const cardImageList = document.querySelector('#card-image-list')
 
       const nowY = window.scrollY
-      window.scrollTo(0, 0)
 
       cardImageList.style.width = '1440px'
       cardImageList.style.height = 'auto'
+      window.scrollTo(0, 0)
+      // if (screen.width < 1024) {
+      //   document.getElementById("viewport").setAttribute("content", "width=1200px");
+      // }
 
+      if ("iOS" === getMobileOperatingSystem()) {
+        cardImageList.style.paddingTop = '50px'
+      }
       html2canvas(cardImageList, {
         scale: 2,
       }).then(canvas => {
-        window.scrollTo(0, nowY)
-        cardImageList.style.width = ''
-        cardImageList.style.height = ''
-
         var d = canvas.toDataURL("image/png");
         const blob = dataURItoBlob(d)
         downloadRawFile(blob, 'cards.png')
+          .then(() => {
+            cardImageList.style.width = ''
+            cardImageList.style.height = ''
+            cardImageList.style.paddingTop = ''
+            window.scrollTo(0, nowY)
+          })
         // var w = window.open('about:blank', 'image from canvas');
         // w.document.write("<img width='100%' src='" + d + "' alt='from canvas'/>");
+        // document.getElementById("viewport").setAttribute("content", "width=device-width, initial-scale=1");
       });
     })
 
@@ -657,17 +686,32 @@
       return blob;
     }
     function downloadRawFile(blobData, filename) {
-      if (blobData != null && navigator.msSaveBlob) {
-        navigator.msSaveBlob(blobData, filename);
-        return;
-      }
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blobData);
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      window.URL.revokeObjectURL(link.href);
-      document.body.removeChild(link);
+      return new Promise(r => {
+        if (blobData != null && navigator.msSaveBlob) {
+          navigator.msSaveBlob(blobData, filename);
+          r()
+          return;
+        }
+
+        if ("iOS" === getMobileOperatingSystem()) {
+          const reader = new FileReader()
+          reader.onload = function (e) {
+            window.location.href = reader.result
+            r()
+          }
+          reader.readAsDataURL(blobData)
+          return
+        }
+
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blobData);
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+        document.body.removeChild(link);
+        r()
+      })
     }
 
     shareBtn.addEventListener('click', function () {

@@ -312,7 +312,7 @@
     return "unknown";
   }
 
-  alert('2B 上線瞜~ 人肉輸入名稱跟屬性可能多少有點錯誤，再請大家有發現可以寄信給我讓我修正QQ')
+  alert('2D 上線瞜~ 人肉輸入名稱跟屬性可能多少有點錯誤，再請大家有發現可以寄信給我讓我修正QQ\n預組的圖會再慢慢更新成中文版的喔~')
   function load() {
     const imageContainer = document.querySelector('#card-image-list')
     const filterSelector = document.querySelector("#select-filter")
@@ -644,23 +644,32 @@
       const cardImageList = document.querySelector('#card-image-list')
 
       const nowY = window.scrollY
-      window.scrollTo(0, 0)
 
       cardImageList.style.width = '1440px'
       cardImageList.style.height = 'auto'
+      window.scrollTo(0, 0)
+      // if (screen.width < 1024) {
+      //   document.getElementById("viewport").setAttribute("content", "width=1200px");
+      // }
 
+      if ("iOS" === getMobileOperatingSystem()) {
+        cardImageList.style.paddingTop = '50px'
+      }
       html2canvas(cardImageList, {
         scale: 2,
       }).then(canvas => {
-        window.scrollTo(0, nowY)
-        cardImageList.style.width = ''
-        cardImageList.style.height = ''
-
         var d = canvas.toDataURL("image/png");
         const blob = dataURItoBlob(d)
         downloadRawFile(blob, 'cards.png')
+          .then(() => {
+            cardImageList.style.width = ''
+            cardImageList.style.height = ''
+            cardImageList.style.paddingTop = ''
+            window.scrollTo(0, nowY)
+          })
         // var w = window.open('about:blank', 'image from canvas');
         // w.document.write("<img width='100%' src='" + d + "' alt='from canvas'/>");
+        // document.getElementById("viewport").setAttribute("content", "width=device-width, initial-scale=1");
       });
     })
 
@@ -677,27 +686,32 @@
       return blob;
     }
     function downloadRawFile(blobData, filename) {
-      if (blobData != null && navigator.msSaveBlob) {
-        navigator.msSaveBlob(blobData, filename);
-        return;
-      }
-
-      if ("iOS" === getMobileOperatingSystem()) {
-        const reader = new FileReader()
-        reader.onload = function (e) {
-          window.location.href = reader.result
+      return new Promise(r => {
+        if (blobData != null && navigator.msSaveBlob) {
+          navigator.msSaveBlob(blobData, filename);
+          r()
+          return;
         }
-        reader.readAsDataURL(blobData)
-        return
-      }
 
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blobData);
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      window.URL.revokeObjectURL(link.href);
-      document.body.removeChild(link);
+        if ("iOS" === getMobileOperatingSystem()) {
+          const reader = new FileReader()
+          reader.onload = function (e) {
+            window.location.href = reader.result
+            r()
+          }
+          reader.readAsDataURL(blobData)
+          return
+        }
+
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blobData);
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+        document.body.removeChild(link);
+        r()
+      })
     }
 
     shareBtn.addEventListener('click', function () {
@@ -823,6 +837,7 @@
                 <option value="AC1D">AC1D</option>
                 <option value="AC2a">AC2a</option>
                 <option value="AC2b">AC2b</option>
+                <option value="AC2D">AC2D</option>
                 <option value="energy">能量</option>
               </select>
               -
@@ -834,11 +849,11 @@
                 <option value=3>3</option>
                 <option value=4>4</option>
                 <option value=5 hidden class="energy-num-option">5</option>
-                <option value=5 hidden class="energy-num-option">6</option>
-                <option value=5 hidden class="energy-num-option">7</option>
-                <option value=5 hidden class="energy-num-option">8</option>
-                <option value=5 hidden class="energy-num-option">9</option>
-                <option value=5 hidden class="energy-num-option">10</option>
+                <option value=6 hidden class="energy-num-option">6</option>
+                <option value=7 hidden class="energy-num-option">7</option>
+                <option value=8 hidden class="energy-num-option">8</option>
+                <option value=9 hidden class="energy-num-option">9</option>
+                <option value=10 hidden class="energy-num-option">10</option>
               </select>
               <div class="text-button" id="btn-add-card">新增</div>
             </div>

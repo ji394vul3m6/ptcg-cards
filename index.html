@@ -756,9 +756,11 @@
       }
     })
     nameFilter.addEventListener('compositionend', function (e) {
-
       const keyword = nameFilter.value
       loadCards('name')
+    })
+    nameFilter.addEventListener('keydown', function (e) {
+
     })
 
     function loadCode() {
@@ -796,7 +798,7 @@
 
     <div class="left">
       <div class="block fix">
-        <form>
+        <form onsubmit="return false">
           <div class="title">
             <div>新增卡片</div>
           </div>

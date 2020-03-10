@@ -18,8 +18,9 @@ def getCardName(p):
     newP = "./names/{}".format(
         p.replace('./', '').replace('/', '_').replace(".jpg", ".png"))
     # namePic = im.convert('L').point(fn, mode="1").crop((85, 28, 355, 60))
-    namePic = im.convert('L').crop((85, 28, 355, 60))
+    # namePic = im.convert('L').crop((85, 28, 355, 60))
     # namePic = im.convert('L').crop((30, 55, 355, 90))
+    namePic = im.convert('L').crop((120, 40, 500, 90))
     t = Image.new('L', (270, 50))
     t.paste(namePic)
     t.save(newP)

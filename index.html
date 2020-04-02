@@ -27,6 +27,7 @@
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
   <script src="./name.js"></script>
+  <script src="./name6.js"></script>
   <script src="./html2canvas.min.js"></script>
   <style>
     #select-series {
@@ -312,7 +313,13 @@
     return "unknown";
   }
 
-  alert('5A 跟 5B 已經更新摟! 5D 再等一下QQ\n另外有些來信最近比較忙還沒回QQ\n希望再來有時間升級一個大版本做更好的體驗!');
+  // alert('5A 跟 5B 已經更新摟! 5D 再等一下QQ\n另外有些來信最近比較忙還沒回QQ\n希望再來有時間升級一個大版本做更好的體驗!');
+
+  Object.keys(name6Obj).forEach((s) => {
+    cardName[s] = name6Obj[s].map(x => x[0])
+    cardMeta[s] = name6Obj[s].map(x => ({type: x[1]}))
+  })
+
   function load() {
     const imageContainer = document.querySelector('#card-image-list')
     const filterSelector = document.querySelector("#select-filter")
@@ -841,6 +848,8 @@
                 <option value="AC2D">AC2D</option>
                 <option value="AS5a">AS5a</option>
                 <option value="AS5b">AS5b</option>
+                <option value="AS6a">AS6a</option>
+                <option value="AS6b">AS6b</option>
                 <option value="energy">能量</option>
               </select>
               -

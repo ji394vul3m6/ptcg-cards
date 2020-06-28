@@ -28,6 +28,7 @@
 
   <script src="./name.js"></script>
   <script src="./name6.js"></script>
+  <script src="./nameSC.js"></script>
   <script src="./html2canvas.min.js"></script>
   <style>
     #select-series {
@@ -313,14 +314,20 @@
     return "unknown";
   }
 
-  // alert('5A 跟 5B 已經更新摟! 5D 再等一下QQ\n另外有些來信最近比較忙還沒回QQ\n希望再來有時間升級一個大版本做更好的體驗!');
-
-  Object.keys(name6Obj).forEach((s) => {
-    cardName[s] = name6Obj[s].map(x => x[0])
-    cardMeta[s] = name6Obj[s].map(x => ({type: x[1]}))
-  })
+  if (!localStorage.getItem('seen')) {
+    alert('SC1a, SC1b 已經更新~\n感謝很多人的來信建議! 前陣子比較忙沒時間消化跟更新網站\n不過最近要離職了\n希望可以更新一個更方便使用的平台給大家使用!\n希望可以比下一彈出之前更新(欸');
+    localStorage.setItem('seen', true)
+  }
 
   function load() {
+    Object.keys(name6Obj).forEach((s) => {
+      cardName[s] = name6Obj[s].map(x => x[0])
+      cardMeta[s] = name6Obj[s].map(x => ({type: x[1]}))
+    })
+    Object.keys(nameSCObj).forEach((s) => {
+      cardName[s] = nameSCObj[s].map(x => x[0])
+      cardMeta[s] = nameSCObj[s].map(x => ({type: x[1]}))
+    })
     const imageContainer = document.querySelector('#card-image-list')
     const filterSelector = document.querySelector("#select-filter")
     const seriesSelector = document.querySelector('#select-series')
@@ -850,6 +857,8 @@
                 <option value="AS5b">AS5b</option>
                 <option value="AS6a">AS6a</option>
                 <option value="AS6b">AS6b</option>
+                <option value="SC1a">SC1a</option>
+                <option value="SC1b">SC1b</option>
                 <option value="energy">能量</option>
               </select>
               -

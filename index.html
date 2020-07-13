@@ -334,6 +334,7 @@
     const numSelector = document.querySelector('#select-num')
     const addCardBtn = document.querySelector('#btn-add-card')
     const downloadBtn = document.querySelector('#btn-download-img')
+    const downloadBetaBtn = document.querySelector('#btn-download-img2')
     const shareBtn = document.querySelector('#btn-get-code')
     const filterRadios = document.querySelectorAll('input[name=filter-type]')
     const nameCardSelector = document.querySelector('#name-select-cards')
@@ -685,6 +686,13 @@
       });
     })
 
+    downloadBetaBtn.addEventListener('click', function() {
+      const code = cardCtl.getCardCodes()
+      const url = new URL(window.location.href)
+      const generateURL = 'https://line-bot.litttlebear.tw/generate?code=' + code
+      window.open(generateURL, '_blank')
+    })
+
     function dataURItoBlob(dataURI) {
       var byteString = atob(dataURI.split(',')[1]);
       var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
@@ -923,6 +931,7 @@
       <div class="block space-between">
         <div class="button-list">
           <div class="text-button" id="btn-download-img">下載卡表圖</div>
+          <div class="text-button" id="btn-download-img2">下載卡表圖(BETA)</div>
           <div class="text-button" id="btn-get-code">取得分享網址</div>
         </div>
         <div>

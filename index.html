@@ -688,9 +688,16 @@
 
     downloadBetaBtn.addEventListener('click', function() {
       const code = cardCtl.getCardCodes()
-      const url = new URL(window.location.href)
-      const generateURL = 'https://line-bot.litttlebear.tw/generate?code=' + code
-      window.open(generateURL, '_blank')
+
+      var request = new XMLHttpRequest();
+
+      function loadData() {
+        window.open(this.responseText, '_blank')
+      }
+      request.addEventListener("load", loadData);
+      request.open('POST', 'https://line-bot.litttlebear.tw/generate?code=' + code, true);
+      request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+      request.send({});
     })
 
     function dataURItoBlob(dataURI) {

@@ -785,8 +785,35 @@
       partials.forEach(function (partial) {
         [series, base64] = partial.split('.')
         const arr = base64ToArray(base64)
-        for (let i = 0; i < arr.length; i += 3) {
-          cards[arr[i+2]] = [series, arr[i], arr[i+1]]
+
+        let isOldFormat = false
+        if (arr.length % 3 !== 0) {
+          isOldFormat = true
+        }
+        if (!isOldFormat) {
+          const tmp = {}
+          let max = 0
+          for (let i = 0; i < arr.length; i += 3) {
+            if (tmp[arr[i+2]]) {
+              isOldFormat = true
+              break
+            }
+            max = Math.max(max, arr[i+2])
+            tmp[arr[i+2]] = true
+          }
+          if (Object.keys(tmp).length !== max + 1) {
+            isOldFormat = true
+          }
+        }
+
+        if (isOldFormat) {
+          for (let i = 0; i < arr.length; i += 2) {
+            cards.push([series, arr[i], arr[i+1]])
+          }
+        } else {
+          for (let i = 0; i < arr.length; i += 3) {
+            cards[arr[i+2]] = [series, arr[i], arr[i+1]]
+          }
         }
       })
       cards.forEach(card => {

@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+  <meta name=description content="寶可夢卡表生成器">
+  <meta name=keywords content="寶可夢,集換式卡片,PTCG">
+
+  <title>PTCG 卡表生成</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-57172336-6"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-57172336-6');
+  </script>
+
+  <!-- Google Adsense --><script data-ad-client="ca-pub-3589478541680972" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+  <script src="./name.js"></script>
+  <script src="./name6.js"></script>
+  <script src="./nameSC.js"></script>
+  <script src="./html2canvas.min.js"></script>
+  <style>
+    .container {
+      display: flex;
+      flex-direction: column;
+
+      justify-content: flex-start;
+      align-items: stretch;
+      padding: 20px;
+      height: 100%;
+    }
+
+    .block {
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.15);
+      margin-top: 20px;
+      padding: 10px;
+      background: white;
+    }
+
+    .block.flex-column {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .block.flex-column > div:not(:last-child){
+      margin-bottom: 10px;
+    }
+
+    #select-series {
+      width: 80px;
+    }
+
+    #select-cards {
+      width: 160px;
+    }
+
+    select {
+      padding: 4px;
+    }
+
+    .button-list {
+      white-space: nowrap;
+      margin-right: 10px;
+    }
+
+    .block:first-child {
+      margin-top: 0;
+    }
+
+    .block.fix {
+      flex: 0 0 auto;
+    }
+
+    .block.stretch {
+      flex: 1;
+    }
+
+    .block .title {
+      padding-bottom: 10px;
+      font-size: 1.2em;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+    }
+
+    .block .content {
+      margin-top: 10px;
+    }
+
+    .block .content .row {
+      margin-bottom: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .block .content .row:last-child {
+      margin-bottom: 0px;
+    }
+
+    .row>div {
+      margin-right: 10px;
+    }
+
+    body {
+      height: 100vh;
+      width: 100vw;
+      margin: 0;
+      font-family: monospace;
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    div {
+      box-sizing: border-box;
+    }
+
+    #card-image-list {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+    }
+
+    #card-image-list .card {
+      flex: 0 1 200px;
+      margin-right: 20px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    #card-image-list .card.num-2 {
+      /* flex-basis: calc(12.5%) */
+      /* margin-left: 2.5%; */
+      margin-left: 20px;
+    }
+
+    #card-image-list .card.num-3 {
+      /* flex-basis: calc(15%) */
+      /* margin-left: 5%; */
+      margin-left: 40px;
+    }
+
+    #card-image-list .card.num-4 {
+      /* flex-basis: calc(17.5%) */
+      /* margin-left: 7.5%; */
+      margin-left: 60px;
+    }
+
+    #card-image-list .card img {
+      width: 100%;
+      background: gray;
+      position: absolute;
+    }
+
+    #card-image-list .card img.first {
+      position: relative;
+      cursor: zoom-in;
+    }
+
+    #card-list span {
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    #card-list .single-card {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      min-height: 28px;
+
+      cursor: default;
+      user-select: none;
+    }
+
+    #card-list .single-card .act-list {
+      /* display: inline-block; */
+      white-space: nowrap;
+      /* visibility: hidden; */
+      display: none;
+    }
+
+    #card-list .single-card:hover .act-list,
+    #card-list .single-card:focus .act-list {
+      /* visibility: visible; */
+      display: inline-block;
+    }
+
+    .text-button {
+      display: inline-block;
+      border: 1px solid rgba(0, 0, 0, 0.8);
+      color: rgba(0, 0, 0, 0.8);
+      padding: 4px;
+      cursor: pointer;
+      height: 28px;
+      vertical-align: center;
+      margin-right: 10px;
+
+      user-select: none;
+      -moz-user-select: none;
+    }
+    .text-button.left-mr {
+      margin-left: 10px;
+    }
+    .text-button.pd-h-10 {
+      padding-right: 10px;
+      padding-left: 10px;
+    }
+
+    .text-button.icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 24px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .text-button.icon.delete {
+      color: rgba(255, 100, 100, 0.8);
+    }
+
+    .text-button:hover {
+      background: rgba(0, 0, 0, 0.15)
+    }
+
+    #name-filter {
+      padding: 3px;
+      width: 80px;
+      display: block;
+      box-sizing: border-box;
+    }
+
+    .filter-type-selector {
+      display: flex;
+      align-items: center;
+    }
+
+    #zoom-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.5);
+      visibility: hidden;
+    }
+
+    #zoom-card {
+      max-width: 80%;
+      max-height: 80%;
+      width: auto;
+      cursor: zoom-out;
+
+      transition: ease-in-out all .3s;
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+
+    #zoom-card.shrink {
+      transform: translate(0, -10%);
+      opacity: 0.01;
+    }
+
+    .name {
+      display: flex;
+      flex-direction: column;
+    }
+    .name > img{
+      width: 100%;
+      display: none;
+    }
+  </style>
+</head>
+
+<script>
+  function getMobileOperatingSystem() {
+    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+    // Windows Phone must come first because its UA also contains "Android"
+    if (/windows phone/i.test(userAgent)) {
+      return "Windows Phone";
+    }
+
+    if (/android/i.test(userAgent)) {
+      return "Android";
+    }
+
+    // iOS detection from: http://stackoverflow.com/a/9039885/177710
+    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+      return "iOS";
+    }
+
+    return "unknown";
+  }
+
+  if (!localStorage.getItem('seen_20200701')) {
+    alert('最新的 SC1D 上線啦!\n因為官方沒有出卡表，內容皆為半自動人工處理\n感謝 李俊毅 大大在社群分享的表格提供了一些協助\n中文卡面如果作者有拿到卡片會陸續更新 ｡ﾟヽ(ﾟ´Д`)ﾉﾟ｡\n因為是純手工，有錯誤的話在請幫忙提供資訊( ´•̥̥̥ω•̥̥̥` )');
+    localStorage.setItem('seen_20200701', true)
+  }
+
+  function load() {
+    Object.keys(name6Obj).forEach((s) => {
+      cardName[s] = name6Obj[s].map(x => x[0])
+      cardMeta[s] = name6Obj[s].map(x => ({type: x[1]}))
+    })
+    Object.keys(nameSCObj).forEach((s) => {
+      cardName[s] = nameSCObj[s].map(x => x[0])
+      cardMeta[s] = nameSCObj[s].map(x => ({type: x[1]}))
+    })
+    const imageContainer = document.querySelector('#card-image-list')
+    const filterSelector = document.querySelector("#select-filter")
+    const seriesSelector = document.querySelector('#select-series')
+    const nameFilter = document.querySelector('#name-filter')
+    const cardSelector = document.querySelector('#select-cards')
+    const numSelector = document.querySelector('#select-num')
+    const addCardBtn = document.querySelector('#btn-add-card')
+    const downloadBtn = document.querySelector('#btn-download-img')
+    const downloadBetaBtn = document.querySelector('#btn-download-img2')
+    const shareBtn = document.querySelector('#btn-get-code')
+    const filterRadios = document.querySelectorAll('input[name=filter-type]')
+    const nameCardSelector = document.querySelector('#name-select-cards')
+    const formDom = document.querySelector('form')
+
+    const zoomContainer = document.querySelector('#zoom-container')
+    const zoomCard = document.querySelector('#zoom-card')
+
+    let currentZoom = undefined;
+
+    function copyToClipboard(text) {
+      const input = document.createElement('input');
+      input.value = text;
+      const body = document.querySelector('body');
+      body.append(input);
+
+      input.select();
+      document.execCommand('copy');
+      input.remove();
+    }
+    function paddingToThree(num) {
+      if (num >= 100) {
+        return num
+      }
+      if (num >= 10) {
+        return '0' + num.toString()
+      }
+      return '00' + num.toString()
+    }
+    function arrayToBase64(bytes) {
+      let binary = '';
+      let len = bytes.byteLength;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+    }
+    function base64ToArray(base64) {
+      const chars = window.atob(base64)
+      const ret = new Uint8Array(chars.length)
+      for (let i = 0; i < chars.length; i++) {
+        ret[i] = chars[i].charCodeAt()
+      }
+      return ret
+    }
+
+    const cardCtl = function () {
+      let currentCards = []
+      function resetCards() {
+        currentCards = []
+      }
+      function addCard(series, cardIdx, num) {
+        if (series === '') {
+          return false
+        }
+        if (cardIdx === '') {
+          return false
+        }
+
+        let find = false
+        currentCards.forEach(card => {
+          if (card[0] === series && card[1] === cardIdx) {
+            if (series === 'energy' || card[2] + num <= 4) {
+              card[2] += num
+            }
+            find = true
+          }
+        })
+
+        if (!find) {
+          currentCards.push([series, cardIdx, num])
+        }
+        return true
+      }
+      function getCards() {
+        return JSON.parse(JSON.stringify(currentCards))
+      }
+      function addCardCount(idx) {
+        if (currentCards[idx][2] < 4 || currentCards[idx][0] === 'energy') {
+          currentCards[idx][2]++
+        }
+      }
+      function minusCardCount(idx) {
+        if (currentCards[idx][2] > 0) {
+          currentCards[idx][2]--
+        }
+        if (currentCards[idx][2] === 0) {
+          currentCards.splice(idx, 1)
+        }
+      }
+      function removeCard(idx) {
+        currentCards.splice(idx, 1)
+      }
+      function shift(i, j) {
+        const tmp = currentCards[i]
+        currentCards[i] = currentCards[j]
+        currentCards[j] = tmp
+      }
+      function getCardCodes() {
+        const cardMap = {}
+        currentCards.forEach(function (card, idx) {
+          series = card[0]
+          id = card[1]
+          num = card[2]
+          if (cardMap[series] === undefined) { cardMap[series] = [] }
+          cardMap[series].push(id, num, idx)
+        })
+        const codes = []
+        Object.keys(cardMap).forEach(function (series) {
+          const arr = new Uint8Array(cardMap[series].length)
+          cardMap[series].forEach((val, idx) => {
+            arr[idx] = val
+          })
+          codes.push(series + '.' + arrayToBase64(arr))
+        })
+        return codes.join('-')
+      }
+      return {
+        resetCards,
+        addCard,
+        getCards,
+        addCardCount,
+        minusCardCount,
+        removeCard,
+        shift,
+        getCardCodes,
+      }
+    }()
+
+    function showCardImage() {
+      const cards = cardCtl.getCards()
+      imageContainer.innerHTML = ''
+
+      cards.forEach(function (info, cardPos) {
+        const [series, cardIdx, num] = info
+
+        let shiftDis = 20
+        if (series === 'energy') {
+          shiftDis = 10
+        }
+        const imageDiv = document.createElement('div')
+        imageDiv.className = 'card'
+        imageDiv.style.marginLeft = (shiftDis * num).toString() + 'px'
+
+        function createImg(src) {
+          const img = document.createElement('img')
+          img.src = src
+          return img
+        }
+
+        for (let i = 0; i < num; i++) {
+          const imgSrc = './' + series + '/' + paddingToThree(cardIdx + 1) + '.jpg'
+          const img = createImg(imgSrc)
+          img.style.left = (0 - shiftDis * i).toString() + 'px'
+          img.style.top = 0
+          img.style.zIndex = num - i
+
+          if (i === 0) {
+            img.className = 'first'
+          }
+          imageDiv.appendChild(img)
+        }
+
+        const textDiv = document.createElement('div')
+        const span = document.createElement('span')
+        span.textContent = cardName[series][cardIdx] + ' x ' + num.toString()
+
+        const operationList = document.createElement('div')
+        function createBtn(className, text, callback) {
+          const btn = document.createElement('div')
+          btn.textContent = text
+          btn.className = "text-button " + className
+          btn.addEventListener('click', callback)
+          return btn
+        }
+        if (cardPos > 0) {
+          operationList.appendChild(createBtn('pd-h-10', '↑', function () {
+            cardCtl.shift(cardPos, cardPos - 1)
+            showCards()
+          }))
+        }
+        if (cardPos < cards.length - 1) {
+          operationList.appendChild(createBtn('pd-h-10', '↓', function () {
+            cardCtl.shift(cardPos, cardPos + 1)
+            showCards()
+          }))
+        }
+        if (num < 4 || series === 'energy') {
+          operationList.appendChild(createBtn('pd-h-10', '+', function () {
+            cardCtl.addCardCount(cardPos)
+            showCards()
+          }))
+        }
+        if (num > 0) {
+          operationList.appendChild(createBtn('pd-h-10', '-', function () {
+            cardCtl.minusCardCount(cardPos)
+            showCards()
+          }))
+        }
+
+        textDiv.appendChild(span)
+        textDiv.appendChild(operationList)
+        textDiv.style.marginLeft = (-1 * shiftDis * (num - 1)).toString() + 'px'
+        textDiv.style.width = "calc(" + (shiftDis * (num - 1)).toString() + 'px + 100%)'
+
+        imageDiv.appendChild(textDiv)
+        imageContainer.appendChild(imageDiv)
+      })
+    }
+    function showCards() {
+      // showCardText()
+      showCardImage()
+    }
+
+    let filterType = ''
+
+    function loadCards(loadFilter) {
+      let cards = []
+      let cardMetas = []
+      if (cardName === undefined) {
+        return
+      }
+      cardSelector.innerHTML = ''
+      if (loadFilter === 'name') {
+        const keyword = nameFilter.value
+        cards = Object.keys(cardName).forEach(series => {
+          cards = cardName[series]
+          cardMetas = cardMeta[series]
+          cards.forEach((name, idx) => {
+            if (keyword !== '' && name.indexOf(keyword) < 0) {
+              return
+            }
+            const opt = document.createElement('option')
+            opt.value = idx
+            opt.textContent = series + ' - ' + paddingToThree(idx + 1) + ' - ' + name
+            opt.dataset.series = series
+            cardSelector.appendChild(opt)
+          })
+        })
+      } else {
+        const series = seriesSelector.value
+        cards = cardName[series]
+        cardMetas = cardMeta[series]
+        cards.forEach((name, idx) => {
+          if (filterType !== '' && cardMetas[idx].type !== filterType) {
+            return
+          }
+          const opt = document.createElement('option')
+          opt.value = idx
+          opt.textContent = paddingToThree(idx + 1) + ' - ' + name
+          opt.dataset.series = series
+          cardSelector.appendChild(opt)
+        })
+      }
+    }
+    filterSelector.addEventListener('change', function () {
+      filterType = filterSelector.value
+      loadCards()
+    })
+
+    seriesSelector.addEventListener('change', function () {
+      loadCards()
+
+      const series = seriesSelector.value
+      const num = parseInt(numSelector.value, 10)
+      document.querySelectorAll('.energy-num-option').forEach(dom => {
+        dom.hidden = (series !== 'energy')
+      })
+      if (series !== 'energy' && num > 4) {
+        numSelector.value = '4'
+      }
+    })
+    addCardBtn.addEventListener('click', function () {
+      const selectOpt = document.querySelector('#select-cards > option:checked')
+      const series = selectOpt.dataset.series
+      const cardIdx = parseInt(cardSelector.value, 10)
+      const num = parseInt(numSelector.value, 10)
+
+      if (series === '' || isNaN(cardIdx) || isNaN(num)) {
+        return
+      }
+
+      if (cardCtl.addCard(series, cardIdx, num)) {
+        showCards()
+      }
+    })
+    downloadBtn.addEventListener('click', function () {
+      const cardImageList = document.querySelector('#card-image-list')
+
+      const nowY = window.scrollY
+
+      cardImageList.style.width = '1440px'
+      cardImageList.style.height = 'auto'
+      window.scrollTo(0, 0)
+      // if (screen.width < 1024) {
+      //   document.getElementById("viewport").setAttribute("content", "width=1200px");
+      // }
+
+      if ("iOS" === getMobileOperatingSystem()) {
+        cardImageList.style.paddingTop = '50px'
+      }
+      html2canvas(cardImageList, {
+        scale: 2,
+      }).then(canvas => {
+        var d = canvas.toDataURL("image/png");
+        const blob = dataURItoBlob(d)
+        downloadRawFile(blob, 'cards.png')
+          .then(() => {
+            cardImageList.style.width = ''
+            cardImageList.style.height = ''
+            cardImageList.style.paddingTop = ''
+            window.scrollTo(0, nowY)
+          })
+        // var w = window.open('about:blank', 'image from canvas');
+        // w.document.write("<img width='100%' src='" + d + "' alt='from canvas'/>");
+        // document.getElementById("viewport").setAttribute("content", "width=device-width, initial-scale=1");
+      });
+    })
+
+    downloadBetaBtn.addEventListener('click', function() {
+      const code = cardCtl.getCardCodes()
+
+      var request = new XMLHttpRequest();
+
+      function loadData() {
+        window.open(this.responseText, '_blank')
+      }
+      request.addEventListener("load", loadData);
+      request.open('POST', 'https://line-bot.litttlebear.tw/generate?code=' + code, true);
+      request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+      request.send({});
+    })
+
+    function dataURItoBlob(dataURI) {
+      var byteString = atob(dataURI.split(',')[1]);
+      var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+      var ab = new ArrayBuffer(byteString.length);
+      var ia = new Uint8Array(ab);
+
+      for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      var blob = new Blob([ab], { type: mimeString });
+      return blob;
+    }
+    function downloadRawFile(blobData, filename) {
+      return new Promise(r => {
+        if (blobData != null && navigator.msSaveBlob) {
+          navigator.msSaveBlob(blobData, filename);
+          r()
+          return;
+        }
+
+        if ("iOS" === getMobileOperatingSystem()) {
+          const reader = new FileReader()
+          reader.onload = function (e) {
+            window.location.href = reader.result
+            r()
+          }
+          reader.readAsDataURL(blobData)
+          return
+        }
+
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blobData);
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+        document.body.removeChild(link);
+        r()
+      })
+    }
+
+    shareBtn.addEventListener('click', function () {
+      const code = cardCtl.getCardCodes()
+      const url = new URL(window.location.href)
+      const shareURL = url.origin + url.pathname + '?code=' + code
+      copyToClipboard(shareURL)
+
+      alert('分享網址 ' + shareURL + ' 已經複製')
+    })
+    filterRadios.forEach(function (radio) {
+      radio.addEventListener('change', function (e) {
+        const filterType = formDom['filter-type'].value
+        if (filterType === 'type') {
+          nameFilter.setAttribute('type', 'hidden')
+          filterSelector.disabled = false
+          seriesSelector.hidden = false
+        } else {
+          nameFilter.setAttribute('type', 'text')
+          filterSelector.disabled = true
+          seriesSelector.hidden = true
+        }
+        loadCards(filterType)
+      })
+    })
+    imageContainer.addEventListener('click', function (e) {
+      const target = e.target
+      if (target.tagName.toLowerCase() !== 'img') {
+        return
+      }
+      const src = target.src
+      zoomCard.src = src
+      zoomCard.className = ''
+      zoomContainer.style.visibility = 'visible'
+    })
+    nameFilter.addEventListener('keyup', function (e) {
+      if (e.keyCode === 8 || e.keyCode === 46) {
+        loadCards('name')
+      } else if (e.keyCode === 13) {
+        e.stopPropagation()
+        e.preventDefault()
+        loadCards('name')
+      }
+    })
+    nameFilter.addEventListener('compositionend', function (e) {
+      const keyword = nameFilter.value
+      loadCards('name')
+    })
+
+    function loadCode() {
+      const url = new URL(document.location.href)
+      const code = url.searchParams.get('code')
+      if (code === '' || code === undefined || code === null) {
+        return
+      }
+
+      const partials = code.split('-')
+      const cards = []
+      const tmp = {}
+      let max = 0
+      let isOldFormat = false
+      partials.forEach(function (partial) {
+        [series, base64] = partial.split('.')
+        const arr = base64ToArray(base64)
+
+        if (arr.length % 3 !== 0) {
+          isOldFormat = true
+        }
+        if (!isOldFormat) {
+          for (let i = 0; i < arr.length; i += 3) {
+            if (tmp[arr[i+2]]) {
+              isOldFormat = true
+              break
+            }
+            max = Math.max(max, arr[i+2])
+            tmp[arr[i+2]] = true
+          }
+        }
+      })
+      if (Object.keys(tmp).length !== max + 1) {
+        isOldFormat = true
+      }
+
+      partials.forEach(partial =>{
+        [series, base64] = partial.split('.')
+        const arr = base64ToArray(base64)
+        if (isOldFormat) {
+          for (let i = 0; i < arr.length; i += 2) {
+            cards.push([series, arr[i], arr[i+1]])
+          }
+        } else {
+          for (let i = 0; i < arr.length; i += 3) {
+            cards[arr[i+2]] = [series, arr[i], arr[i+1]]
+          }
+        }
+      })
+
+      cards.forEach(card => {
+          cardCtl.addCard(card[0], card[1], card[2])
+      })
+      showCards()
+    }
+
+    zoomContainer.addEventListener('click', function() {
+      zoomCard.className = 'shrink'
+      zoomContainer.style.visibility = 'hidden'
+    })
+
+    loadCode()
+    loadCards()
+  }
+
+</script>
+
+<body onload="load()">
+  <div class="container">
+    <div class="block fix">
+      <form onsubmit="return false">
+        <div class="title">
+          <div>新增卡片</div>
+        </div>
+        <div class="content">
+          <div class="row">
+            <div class="filter-type-selector">
+              <input type="radio" name="filter-type" value="type" checked>
+              <div>屬性篩選</div>
+              <select name="filter" id="select-filter">
+                <option value="">不限</option>
+                <option value="一般">一般</option>
+                <option value="草">草</option>
+                <option value="火">火</option>
+                <option value="水">水</option>
+                <option value="電">電</option>
+                <option value="超能力">超能力</option>
+                <option value="格鬥">格鬥</option>
+                <option value="惡">惡</option>
+                <option value="鋼">鋼</option>
+                <option value="妖精">妖精</option>
+                <option value="龍">龍</option>
+                <option value="支援者">支援者</option>
+                <option value="場地">場地</option>
+                <option value="道具">道具</option>
+                <option value="能量">能量</option>
+                </option>
+              </select>
+            </div>
+            <div class="filter-type-selector">
+              <input type="radio" name="filter-type" value="name">
+              <div>關鍵字篩選</div>
+            </div>
+          </div>
+          <div class="row">
+            <input type="hidden" id="name-filter" placeholder="請輸入">
+            <select name="series" id="select-series">
+              <option value="AC1a">AC1a</option>
+              <option value="AC1b">AC1b</option>
+              <option value="AC1D">AC1D</option>
+              <option value="AC2a">AC2a</option>
+              <option value="AC2b">AC2b</option>
+              <option value="AC2D">AC2D</option>
+              <option value="AS5a">AS5a</option>
+              <option value="AS5b">AS5b</option>
+              <option value="AS6a">AS6a</option>
+              <option value="AS6b">AS6b</option>
+              <option value="SC1a">SC1a</option>
+              <option value="SC1b">SC1b</option>
+              <option value="SC1D">SC1D</option>
+              <option value="energy">能量</option>
+            </select>
+            -
+            <select name="card" id="select-cards"></select>
+            x
+            <select name="num" id="select-num">
+              <option value=1>1</option>
+              <option value=2>2</option>
+              <option value=3>3</option>
+              <option value=4>4</option>
+              <option value=5 hidden class="energy-num-option">5</option>
+              <option value=6 hidden class="energy-num-option">6</option>
+              <option value=7 hidden class="energy-num-option">7</option>
+              <option value=8 hidden class="energy-num-option">8</option>
+              <option value=9 hidden class="energy-num-option">9</option>
+              <option value=10 hidden class="energy-num-option">10</option>
+              <option value=11 hidden class="energy-num-option">11</option>
+              <option value=12 hidden class="energy-num-option">12</option>
+              <option value=13 hidden class="energy-num-option">13</option>
+              <option value=14 hidden class="energy-num-option">14</option>
+            </select>
+            <div class="text-button left-mr" id="btn-add-card">新增</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="block flex-column">
+      <div>
+        <span>卡片列表 總共 </span>
+        <span id="total-card-num">0</span>
+        <span> 張</span>
+      </div>
+      <div class="button-list">
+        <div class="text-button" id="btn-download-img">下載卡表圖</div>
+        <div class="text-button" id="btn-download-img2">下載卡表圖(BETA)</div>
+        <div class="text-button" id="btn-get-code">取得分享網址</div>
+      </div>
+      <div>
+        <span>使用上錯誤請截圖或說明寄到 danielwu.ee[at]gmail.com</span>
+      </div>
+    </div>
+    <div class="block stretch">
+      <div class="title">卡表圖</div>
+      <div class="content" id="card-image-list"></div>
+    </div>
+  </div>
+  <div id="zoom-container">
+    <img id="zoom-card" class="shrink">
+    <div class="operation-list">
+      <div class="text-button left-mr" id="move-up">上移</div>
+      <div class="text-button" id="move-down">下移</div>
+      <div class="text-button" id="plus">+1</div>
+      <div class="text-button" id="minus">-1</div>
+    </div>
+  </div>
+</body>
+
+</html>

@@ -797,17 +797,17 @@
 
       const partials = code.split('-')
       const cards = []
+      const tmp = {}
+      let max = 0
+      let isOldFormat = false
       partials.forEach(function (partial) {
         [series, base64] = partial.split('.')
         const arr = base64ToArray(base64)
 
-        let isOldFormat = false
         if (arr.length % 3 !== 0) {
           isOldFormat = true
         }
         if (!isOldFormat) {
-          const tmp = {}
-          let max = 0
           for (let i = 0; i < arr.length; i += 3) {
             if (tmp[arr[i+2]]) {
               isOldFormat = true
@@ -816,11 +816,15 @@
             max = Math.max(max, arr[i+2])
             tmp[arr[i+2]] = true
           }
-          if (Object.keys(tmp).length !== max + 1) {
-            isOldFormat = true
-          }
         }
+      })
+      if (Object.keys(tmp).length !== max + 1) {
+        isOldFormat = true
+      }
 
+      partials.forEach(partial =>{
+        [series, base64] = partial.split('.')
+        const arr = base64ToArray(base64)
         if (isOldFormat) {
           for (let i = 0; i < arr.length; i += 2) {
             cards.push([series, arr[i], arr[i+1]])
@@ -831,6 +835,7 @@
           }
         }
       })
+
       cards.forEach(card => {
           cardCtl.addCard(card[0], card[1], card[2])
       })

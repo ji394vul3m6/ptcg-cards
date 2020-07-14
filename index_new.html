@@ -128,6 +128,10 @@
       align-content: flex-start;
     }
 
+    #card-image-list.output .operation-list {
+      display: none;
+    }
+
     #card-image-list .card {
       flex: 0 1 200px;
       margin-right: 20px;
@@ -497,6 +501,7 @@
         span.textContent = cardName[series][cardIdx] + ' x ' + num.toString()
 
         const operationList = document.createElement('div')
+        operationList.className = 'operation-list'
         function createBtn(className, text, callback) {
           const btn = document.createElement('div')
           btn.textContent = text
@@ -617,6 +622,7 @@
     })
     downloadBtn.addEventListener('click', function () {
       const cardImageList = document.querySelector('#card-image-list')
+      cardImageList.className = 'content output'
 
       const nowY = window.scrollY
 
@@ -640,6 +646,7 @@
             cardImageList.style.width = ''
             cardImageList.style.height = ''
             cardImageList.style.paddingTop = ''
+            cardImageList.className = 'content'
             window.scrollTo(0, nowY)
           })
         // var w = window.open('about:blank', 'image from canvas');

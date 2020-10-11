@@ -16,13 +16,18 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-57172336-6"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
     gtag('js', new Date());
 
     gtag('config', 'UA-57172336-6');
   </script>
 
-  <!-- Google Adsense --><script data-ad-client="ca-pub-3589478541680972" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  <!-- Google Adsense -->
+  <script data-ad-client="ca-pub-3589478541680972" async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
   <script src="./name.js"></script>
   <script src="./name6.js"></script>
@@ -320,11 +325,15 @@
   function load() {
     Object.keys(name6Obj).forEach((s) => {
       cardName[s] = name6Obj[s].map(x => x[0])
-      cardMeta[s] = name6Obj[s].map(x => ({type: x[1]}))
+      cardMeta[s] = name6Obj[s].map(x => ({
+        type: x[1]
+      }))
     })
     Object.keys(nameSCObj).forEach((s) => {
       cardName[s] = nameSCObj[s].map(x => x[0])
-      cardMeta[s] = nameSCObj[s].map(x => ({type: x[1]}))
+      cardMeta[s] = nameSCObj[s].map(x => ({
+        type: x[1]
+      }))
     })
     const imageContainer = document.querySelector('#card-image-list')
     const filterSelector = document.querySelector("#select-filter")
@@ -353,6 +362,7 @@
       document.execCommand('copy');
       input.remove();
     }
+
     function paddingToThree(num) {
       if (num >= 100) {
         return num
@@ -362,6 +372,7 @@
       }
       return '00' + num.toString()
     }
+
     function arrayToBase64(bytes) {
       let binary = '';
       let len = bytes.byteLength;
@@ -370,6 +381,7 @@
       }
       return window.btoa(binary);
     }
+
     function base64ToArray(base64) {
       const chars = window.atob(base64)
       const ret = new Uint8Array(chars.length)
@@ -381,9 +393,11 @@
 
     const cardCtl = function () {
       let currentCards = []
+
       function resetCards() {
         currentCards = []
       }
+
       function addCard(series, cardIdx, num) {
         if (series === '') {
           return false
@@ -407,14 +421,17 @@
         }
         return true
       }
+
       function getCards() {
         return JSON.parse(JSON.stringify(currentCards))
       }
+
       function addCardCount(idx) {
         if (currentCards[idx][2] < 4 || currentCards[idx][0] === 'energy') {
           currentCards[idx][2]++
         }
       }
+
       function minusCardCount(idx) {
         if (currentCards[idx][2] > 0) {
           currentCards[idx][2]--
@@ -423,21 +440,26 @@
           currentCards.splice(idx, 1)
         }
       }
+
       function removeCard(idx) {
         currentCards.splice(idx, 1)
       }
+
       function shift(i, j) {
         const tmp = currentCards[i]
         currentCards[i] = currentCards[j]
         currentCards[j] = tmp
       }
+
       function getCardCodes() {
         const cardMap = {}
         currentCards.forEach(function (card, idx) {
           series = card[0]
           id = card[1]
           num = card[2]
-          if (cardMap[series] === undefined) { cardMap[series] = [] }
+          if (cardMap[series] === undefined) {
+            cardMap[series] = []
+          }
           cardMap[series].push(id, num, idx)
         })
         const codes = []
@@ -478,7 +500,8 @@
         singleCard.setAttribute('tabindex', 0)
 
         total += num
-        span.textContent = series + ' - ' + paddingToThree(cardIdx + 1) + ' - ' + cardName[series][cardIdx] + ' x ' + num.toString()
+        span.textContent = series + ' - ' + paddingToThree(cardIdx + 1) + ' - ' + cardName[series][cardIdx] +
+          ' x ' + num.toString()
 
         singleCard.appendChild(span)
 
@@ -533,6 +556,7 @@
       })
       totalNumContainer.innerHTML = total.toString()
     }
+
     function showCardImage() {
       const cards = cardCtl.getCards()
       imageContainer.innerHTML = ''
@@ -576,6 +600,7 @@
         imageContainer.appendChild(imageDiv)
       })
     }
+
     function showCards() {
       showCardText()
       showCardImage()
@@ -686,7 +711,7 @@
       });
     })
 
-    downloadBetaBtn.addEventListener('click', function() {
+    downloadBetaBtn.addEventListener('click', function () {
       const code = cardCtl.getCardCodes()
 
       var request = new XMLHttpRequest();
@@ -709,9 +734,12 @@
       for (var i = 0; i < byteString.length; i++) {
         ia[i] = byteString.charCodeAt(i);
       }
-      var blob = new Blob([ab], { type: mimeString });
+      var blob = new Blob([ab], {
+        type: mimeString
+      });
       return blob;
     }
+
     function downloadRawFile(blobData, filename) {
       return new Promise(r => {
         if (blobData != null && navigator.msSaveBlob) {
@@ -809,12 +837,12 @@
         }
         if (!isOldFormat) {
           for (let i = 0; i < arr.length; i += 3) {
-            if (tmp[arr[i+2]]) {
+            if (tmp[arr[i + 2]]) {
               isOldFormat = true
               break
             }
-            max = Math.max(max, arr[i+2])
-            tmp[arr[i+2]] = true
+            max = Math.max(max, arr[i + 2])
+            tmp[arr[i + 2]] = true
           }
         }
       })
@@ -822,22 +850,22 @@
         isOldFormat = true
       }
 
-      partials.forEach(partial =>{
+      partials.forEach(partial => {
         [series, base64] = partial.split('.')
         const arr = base64ToArray(base64)
         if (isOldFormat) {
           for (let i = 0; i < arr.length; i += 2) {
-            cards.push([series, arr[i], arr[i+1]])
+            cards.push([series, arr[i], arr[i + 1]])
           }
         } else {
           for (let i = 0; i < arr.length; i += 3) {
-            cards[arr[i+2]] = [series, arr[i], arr[i+1]]
+            cards[arr[i + 2]] = [series, arr[i], arr[i + 1]]
           }
         }
       })
 
       cards.forEach(card => {
-          cardCtl.addCard(card[0], card[1], card[2])
+        cardCtl.addCard(card[0], card[1], card[2])
       })
       showCards()
     }
@@ -850,7 +878,6 @@
     loadCode()
     loadCards()
   }
-
 </script>
 
 <body onload="load()">
@@ -908,6 +935,9 @@
                 <option value="SC1a">SC1a</option>
                 <option value="SC1b">SC1b</option>
                 <option value="SC1D">SC1D</option>
+                <option value="SC2a">SC2a</option>
+                <option value="SC2b">SC2b</option>
+                <option value="S4">S4</option>
                 <option value="energy">能量</option>
               </select>
               -

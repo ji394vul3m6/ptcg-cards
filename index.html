@@ -28,6 +28,7 @@
   <script src="./name.js"></script>
   <script src="./name6.js"></script>
   <script src="./nameSC.js"></script>
+  <script src="./nameS5.js"></script>
   <script src="./html2canvas.min.js"></script>
   <style>
     #select-series {
@@ -332,6 +333,12 @@
     Object.keys(nameSCObj).forEach((s) => {
       cardName[s] = nameSCObj[s].map(x => x[0])
       cardMeta[s] = nameSCObj[s].map(x => ({
+        type: x[1]
+      }))
+    })
+    Object.keys(nameS5Obj).forEach((s) => {
+      cardName[s] = nameS5Obj[s].map(x => x[0])
+      cardMeta[s] = nameS5Obj[s].map(x => ({
         type: x[1]
       }))
     })
@@ -922,21 +929,23 @@
             <div class="row">
               <input type="hidden" id="name-filter" placeholder="請輸入">
               <select name="series" id="select-series">
+                <option value="S5I">S5I</option>
+                <option value="S5R">S5R</option>
+                <option value="SC1a">SC1a</option>
+                <option value="SC1b">SC1b</option>
+                <option value="SC1D">SC1D</option>
+                <option value="SC2a">SC2a</option>
+                <option value="SC2b">SC2b</option>
+                <option value="AS5a">AS5a</option>
+                <option value="AS5b">AS5b</option>
+                <option value="AS6a">AS6a</option>
+                <option value="AS6b">AS6b</option>
                 <option value="AC1a">AC1a</option>
                 <option value="AC1b">AC1b</option>
                 <option value="AC1D">AC1D</option>
                 <option value="AC2a">AC2a</option>
                 <option value="AC2b">AC2b</option>
                 <option value="AC2D">AC2D</option>
-                <option value="AS5a">AS5a</option>
-                <option value="AS5b">AS5b</option>
-                <option value="AS6a">AS6a</option>
-                <option value="AS6b">AS6b</option>
-                <option value="SC1a">SC1a</option>
-                <option value="SC1b">SC1b</option>
-                <option value="SC1D">SC1D</option>
-                <option value="SC2a">SC2a</option>
-                <option value="SC2b">SC2b</option>
                 <option value="S4">S4</option>
                 <option value="energy">能量</option>
               </select>
@@ -985,19 +994,15 @@
         <div class="title">卡表圖</div>
         <div class="content" id="card-image-list"></div>
       </div>
-<div style="margin-top: 20px; flex: 0 0 auto;">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- 舊網頁用 -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-3589478541680972"
-     data-ad-slot="1206134297"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-</div>
+      <div style="margin-top: 20px; flex: 0 0 auto;">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- 舊網頁用 -->
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3589478541680972"
+          data-ad-slot="1206134297" data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
     </div>
   </div>
   <div id="zoom-container">

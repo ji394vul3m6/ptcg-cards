@@ -29,6 +29,7 @@
   <script src="./name6.js"></script>
   <script src="./nameSC.js"></script>
   <script src="./nameS5.js"></script>
+  <script src="./nameS6.js"></script>
   <script src="./html2canvas.min.js"></script>
   <style>
     #select-series {
@@ -318,9 +319,9 @@
     return "unknown";
   }
 
-  if (!localStorage.getItem('seen_20200723')) {
-    alert('有做出了新版的 UI 使用上有一些調整，歡迎點擊新版網頁去試用看看喔~');
-    localStorage.setItem('seen_20200723', true)
+  if (!localStorage.getItem('seen_20210522')) {
+    alert('久違的更新~ 更新到官方最新卡表 [20210522]');
+    localStorage.setItem('seen_20210522', true)
   }
 
   function load() {
@@ -339,6 +340,12 @@
     Object.keys(nameS5Obj).forEach((s) => {
       cardName[s] = nameS5Obj[s].map(x => x[0])
       cardMeta[s] = nameS5Obj[s].map(x => ({
+        type: x[1]
+      }))
+    })
+    Object.keys(nameS6Obj).forEach((s) => {
+      cardName[s] = nameS6Obj[s].map(x => x[0])
+      cardMeta[s] = nameS6Obj[s].map(x => ({
         type: x[1]
       }))
     })
@@ -929,6 +936,9 @@
             <div class="row">
               <input type="hidden" id="name-filter" placeholder="請輸入">
               <select name="series" id="select-series">
+                <option value="S5I">S6H</option>
+                <option value="S5I">S6K</option>
+                <option value="S5R">S5AF</option>
                 <option value="S5I">S5I</option>
                 <option value="S5R">S5R</option>
                 <option value="SC1a">SC1a</option>
